@@ -33,17 +33,19 @@ templates are determined per each OS:
 -  Linux: ``$HOME/.config/godot/script_templates/``
 -  macOS: ``$HOME/Library/Application Support/Godot/script_templates/``
 
-If no ``script_templates`` is detected, Godot will create a default set of
-built-in templates automatically, so this logic can be used to reset the default
-templates in case you've accidentally overwritten them.
+If you're getting Godot from somewhere other than the official website, such
+as Steam, the folder might be in a different location. You can find it using
+the Godot editor. Go to ``Editor > Open Editor Data/Settings Folder`` and it
+will open a folder in your file browser, inside that folder is the
+``script_templates`` folder.
 
 Project-defined templates
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The default path to search for templates is the
-``res://script_templates/`` directory. The path can be changed by configuring
-the ``editor/script_templates_search_path`` setting in the
-:ref:`ProjectSettings <class_ProjectSettings>`, both via code and the editor.
+``res://script_templates/`` directory. The path can be changed by configuring the project setting
+:ref:`Editor > Script > Templates Search Path<class_ProjectSettings_property_editor/script/templates_search_path>`,
+both via code and the editor.
 
 If no ``script_templates`` directory is found within a project, it is simply
 ignored.
@@ -59,14 +61,19 @@ Both editor and project defined templates are organized in the following way:
 
 where:
 
-* ``template_path`` is one of the 2 locations discussed in the previous two sections
+* ``template_path`` is one of the 2 locations discussed in the previous two sections.
 
-* ``node_type`` is the node it will apply to (for example, :ref:`Node <class_Node>`, or :ref:`CharacterBody3D <class_CharacterBody3D>`)
+* ``node_type`` is the node it will apply to (for example, :ref:`Node <class_Node>`, or :ref:`CharacterBody3D <class_CharacterBody3D>`),
+  This is **case-sensitive**. If a script isn't in the proper ``node_type`` folder, it won't be detected.
 
-* ``file`` is the custom name you can chose for the template (for example: ``platformer_movement`` or ``smooth_camera``)
+* ``file`` is the custom name you can chose for the template (for example, ``platformer_movement`` or ``smooth_camera``).
 
-* ``extension``: will indicate which language the template will apply to (it should be ``gd`` for GDScript or ``cs`` for C#)
+* ``extension`` indicates which language the template will apply to (it should be ``gd`` for GDScript or ``cs`` for C#).
 
+For example:
+
+-  ``template_scripts/Node/smooth_camera.gd``
+-  ``template_scripts/CharacterBody3D/platformer_movement.gd``
 
 Default behaviour and overriding it
 -----------------------------------
@@ -116,6 +123,12 @@ This is an example of utilizing custom templates at editor and project level:
           visible throughout the project's filesystem anymore, yet the templates can be
           modified by an external text editor anytime.
 
+.. tip::
+
+    By default, every C# file inside the project directory is included in the compilation.
+    Script templates must be manually excluded from the C# project to avoid build errors.
+    See `Exclude files from the build <https://learn.microsoft.com/en-us/visualstudio/msbuild/how-to-exclude-files-from-the-build>`_ in the Microsoft documentation.
+
 It is possible to create editor-level templates that have the same level as a project-specific
 templates, and also that have the same name as a built-in one, all will be shown on the new script
 dialog.
@@ -136,40 +149,40 @@ use these as the base for creating other templates:
 
  .. code-tab:: gdscript GDScript
 
-   # meta-description: Base template for Node with default Godot cycle methods
+    # meta-description: Base template for Node with default Godot cycle methods
 
-   extends _BASE_
-
-
-   # Called when the node enters the scene tree for the first time.
-   func _ready() -> void:
-   	pass # Replace with function body.
+    extends _BASE_
 
 
-   # Called every frame. 'delta' is the elapsed time since the previous frame.
-   func _process(delta: float) -> void:
-   	pass
+    # Called when the node enters the scene tree for the first time.
+    func _ready() -> void:
+        pass # Replace with function body.
+
+
+    # Called every frame. 'delta' is the elapsed time since the previous frame.
+    func _process(delta: float) -> void:
+        pass
 
 
  .. code-tab:: csharp
 
-   // meta-description: Base template for Node with default Godot cycle methods
+    // meta-description: Base template for Node with default Godot cycle methods
 
-   using _BINDINGS_NAMESPACE_;
-   using System;
+    using _BINDINGS_NAMESPACE_;
+    using System;
 
-   public partial class _CLASS_ : _BASE_
-   {
-       // Called when the node enters the scene tree for the first time.
-       public override void _Ready()
-       {
-       }
+    public partial class _CLASS_ : _BASE_
+    {
+        // Called when the node enters the scene tree for the first time.
+        public override void _Ready()
+        {
+        }
 
-       // Called every frame. 'delta' is the elapsed time since the previous frame.
-       public override void _Process(double delta)
-       {
-       }
-   }
+        // Called every frame. 'delta' is the elapsed time since the previous frame.
+        public override void _Process(double delta)
+        {
+        }
+    }
 
 The Godot editor provides a set of useful built-in node-specific templates, such as
 ``basic_movement`` for both :ref:`CharacterBody2D <class_CharacterBody2D>` and
@@ -185,20 +198,23 @@ which are currently implemented.
 Base placeholders
 ~~~~~~~~~~~~~~~~~
 
-+-------------+-----------------------------------------------------------------+
-| Placeholder | Description                                                     |
-+=============+=================================================================+
-| ``_CLASS_`` | The name of the new class (used in C# only).                    |
-+-------------+-----------------------------------------------------------------+
-| ``_BASE_``  | The base type a new script inherits from.                       |
-+-------------+-----------------------------------------------------------------+
-| ``_TS_``    | Indentation placeholder. The exact type and number of           |
-|             | whitespace characters used for indentation is determined by     |
-|             | the ``text_editor/indent/type`` and ``text_editor/indent/size`` |
-|             | settings in the :ref:`EditorSettings <class_EditorSettings>`    |
-|             | respectively. Can be overridden by the ``meta-space-indent``    |
-|             | header on the template.                                         |
-+-------------+-----------------------------------------------------------------+
++--------------------------+----------------------------------------------------+
+| Placeholder              | Description                                        |
++==========================+====================================================+
+| ``_BINDINGS_NAMESPACE_`` | The name of the Godot namespace (used in C# only). |
++--------------------------+----------------------------------------------------+
+| ``_CLASS_``              | The name of the new class.                         |
++--------------------------+----------------------------------------------------+
+| ``_BASE_``               | The base type a new script inherits from.          |
++--------------------------+----------------------------------------------------+
+| ``_TS_``                 | Indentation placeholder. The exact type and number |
+|                          | of whitespace characters used for indentation is   |
+|                          | determined by the ``text_editor/indent/type`` and  |
+|                          | ``text_editor/indent/size`` settings in the        |
+|                          | :ref:`EditorSettings <class_EditorSettings>`       |
+|                          | respectively. Can be overridden by the             |
+|                          | ``meta-space-indent`` header on the template.      |
++--------------------------+----------------------------------------------------+
 
 Type placeholders
 ~~~~~~~~~~~~~~~~~

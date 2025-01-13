@@ -131,12 +131,12 @@ while up/down moves it forward or backward in whatever direction it's facing.
         [Export]
         public float RotationSpeed { get; set; } = 1.5f;
 
-        private int _rotationDirection;
+        private float _rotationDirection;
 
         public void GetInput()
         {
             _rotationDirection = Input.GetAxis("left", "right");
-            Velocity = Transform.x * Input.GetAxis("down", "up") * Speed;
+            Velocity = Transform.X * Input.GetAxis("down", "up") * Speed;
         }
 
         public override void _PhysicsProcess(double delta)
@@ -189,7 +189,7 @@ is set by the mouse position instead of the keyboard. The character will always
         public void GetInput()
         {
             LookAt(GetGlobalMousePosition());
-            Velocity = Transform.x * Input.GetAxis("down", "up") * Speed;
+            Velocity = Transform.X * Input.GetAxis("down", "up") * Speed;
         }
 
         public override void _PhysicsProcess(double delta)
@@ -231,7 +231,8 @@ on the screen will cause the player to move to the target location.
     var target = position
 
     func _input(event):
-        if event.is_action_pressed("click"):
+        # Use is_action_pressed to only accept single taps as input instead of mouse drags.
+        if event.is_action_pressed(&"click"):
             target = get_global_mouse_position()
 
     func _physics_process(delta):
@@ -253,6 +254,7 @@ on the screen will cause the player to move to the target location.
 
         public override void _Input(InputEvent @event)
         {
+            // Use IsActionPressed to only accept single taps as input instead of mouse drags.
             if (@event.IsActionPressed("click"))
             {
                 _target = GetGlobalMousePosition();
@@ -262,7 +264,7 @@ on the screen will cause the player to move to the target location.
         public override void _PhysicsProcess(double delta)
         {
             Velocity = Position.DirectionTo(_target) * Speed;
-            // LookAt(target);
+            // LookAt(_target);
             if (Position.DistanceTo(_target) > 10)
             {
                 MoveAndSlide();
@@ -289,4 +291,4 @@ You may find these code samples useful as starting points for your own projects.
 Feel free to use them and experiment with them to see what you can make.
 
 You can download this sample project here:
-:download:`2D_movement_demo.zip <files/2D_movement_demo.zip>`
+`2d_movement_starter.zip <https://github.com/godotengine/godot-docs-project-starters/releases/download/latest-4.x/2d_movement_starter.zip>`_

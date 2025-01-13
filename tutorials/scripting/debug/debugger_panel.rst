@@ -10,15 +10,31 @@ debugger panel at the bottom of the screen. Click on **Debugger** to open it.
 
 The debugger panel is split into several tabs, each focusing on a specific task.
 
-Debugger
---------
+Stack Trace
+-----------
 
-The Debugger tab opens automatically when the GDScript compiler reaches
+The Stack Trace tab opens automatically when the GDScript compiler reaches
 a breakpoint in your code.
 
 It gives you a `stack trace <https://en.wikipedia.org/wiki/Stack_trace>`__,
-information about the state of the object, and buttons to control
-the program's execution.
+information about the state of the object, and buttons to control the program's
+execution. When the debugger breaks on a breakpoint, a green triangle arrow is
+visible in the script editor's gutter. This arrow indicates the line of code the
+debugger broke on.
+
+.. tip::
+
+    You can create a breakpoint by clicking the gutter in the left of the script
+    editor (on the left of the line numbers). When hovering this gutter, you
+    will see a transparent red dot appearing, which turns into an opaque red dot
+    after the breakpoint is placed by clicking. Click the red dot again to
+    remove the breakpoint. Breakpoints created this way persist across editor
+    restarts, even if the script wasn't saved when exiting the editor.
+
+    You can also use the ``breakpoint`` keyword in GDScript to create a
+    breakpoint that is stored in the script itself. Unlike breakpoints created by
+    clicking in the gutter, this keyword-based breakpoint is persistent across
+    different machines when using version control.
 
 You can use the buttons in the top-right corner to:
 
@@ -32,18 +48,59 @@ You can use the buttons in the top-right corner to:
 - **Break**. This button pauses the game's execution.
 - **Continue**. This button resumes the game after a breakpoint or pause.
 
-.. warning::
-
-    Breakpoints won't break on code if it's
-    :ref:`running in a thread <doc_using_multiple_threads>`.
-    This is a current limitation of the GDScript debugger.
-
 Errors
 ------
 
 This is where error and warning messages are printed while running the game.
 
 You can disable specific warnings in **Project Settings > Debug > GDScript**.
+
+Evaluator
+----------
+
+This tab contains an expression evaluator, also known as a :abbr:`REPL (Read-Eval-Print Loop)`.
+This is a more powerful complement to the Stack Variables tree available in the Stack Trace tab.
+
+When the project is interrupted in the debugger (due to a breakpoint or script
+error), you can enter an expression in the text field at the top. If the project
+is running, the expression field won't be editable, so you will need to set a
+breakpoint first. Expressions can be persisted across runs by unchecking **Clear on Run**,
+although they will be lost when the editor quits.
+
+Expressions are evaluated using :ref:`Godot's expression language
+<doc_evaluating_expressions>`, which allows you to perform arithmetic and call
+some functions within the expression. Expressions can refer to member variables,
+or local variables within the same scope as the line the breakpoint is on. You
+can also enter constant values, which makes it usable as a built-in calculator.
+
+Consider the following script:
+
+::
+
+    var counter = 0
+
+    func _process(delta):
+        counter += 1
+        if counter == 5:
+            var text = "Some text"
+            breakpoint
+        elif counter >= 6:
+            var other_text = "Some other text"
+            breakpoint
+
+If the debugger breaks on the **first** line containing ``breakpoint``, the following
+expressions return non-null values:
+
+- **Constant expression:** ``2 * PI + 5``
+- **Member variable:** ``counter``, ``counter ** 2``, ``sqrt(counter)``
+- **Local variable or function parameter:** ``delta``, ``text``, ``text.to_upper()``
+
+If the debugger breaks on the **second** line containing ``breakpoint``, the following
+expressions return non-null values:
+
+- **Constant expression:** ``2 * PI + 5``
+- **Member variable:** ``counter``, ``counter ** 2``, ``sqrt(counter)``
+- **Local variable or function parameter:** ``delta``, ``other_text``, ``other_text.to_upper()``
 
 Profiler
 --------
@@ -77,6 +134,12 @@ tab within the Debugger bottom panel, then click **Start**:
    :alt: Visual Profiler tab after clicking Start, waiting for a few seconds, then clicking Stop
 
    Visual Profiler tab after clicking **Start**, waiting for a few seconds, then clicking **Stop**
+
+.. tip::
+
+    You can also check **Autostart**, which will make the visual profiler automatically
+    start when the project is run the next time. Note that the **Autostart**
+    checkbox's state is not preserved across editor sessions.
 
 You will see categories and results appearing as the profiler is running. Graph
 lines also appear, with the left side being a CPU framegraph and the right side

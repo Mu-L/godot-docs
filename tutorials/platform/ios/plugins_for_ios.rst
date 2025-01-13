@@ -184,7 +184,7 @@ The response event will be a dictionary with the following fields:
       "invalid_ids": [ list of requested IDs that were invalid ],
       "ids": [ list of IDs that were valid ],
       "titles": [ list of valid product titles (corresponds with list of valid IDs) ],
-      "descriptions": [ list of valid product descriptions ] ,
+      "descriptions": [ list of valid product descriptions ],
       "prices": [ list of valid product prices ],
       "localized_prices": [ list of valid product localized prices ],
     }
@@ -490,7 +490,7 @@ On success:
 ``show_game_center``
 ~~~~~~~~~~~~~~~~~~~~
 
-Displays the built in Game Center overlay showing leaderboards,
+Displays the built-in Game Center overlay showing leaderboards,
 achievements, and challenges.
 
 Parameters

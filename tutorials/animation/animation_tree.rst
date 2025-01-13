@@ -12,9 +12,6 @@ function calling, audio and sub-animation tracks, is pretty much unique.
 
 However, the support for blending those animations via ``AnimationPlayer`` is relatively limited, as only a fixed cross-fade transition time can be set.
 
-:ref:`AnimationTree <class_AnimationTree>` is a new node introduced in Godot 3.1 to deal with advanced transitions.
-It supersedes the ancient ``AnimationTreePlayer``, while adding a huge amount of features and flexibility.
-
 Creating an AnimationTree
 -------------------------
 
@@ -73,7 +70,7 @@ This will simply play back the animation. Make sure that the ``AnimationTree`` i
 Following is a short description of available nodes:
 
 Blend2 / Blend3
-^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~
 
 These nodes will blend between two or three inputs by a user-specified blend value:
 
@@ -87,13 +84,13 @@ This is very useful for layering animations on top of each other.
 .. image:: img/animtree6.png
 
 OneShot
-^^^^^^^
+~~~~~~~
 
 This node will execute a sub-animation and return once it finishes. Blend times for fading in and out can be customized, as well as filters.
 
 .. image:: img/animtree6b.gif
 
-After setting the request and changing the animation playback, the one-shot node automatically clears the request on the next process frame by setting its [code]request[/code] value to [constant ONE_SHOT_REQUEST_NONE].
+After setting the request and changing the animation playback, the one-shot node automatically clears the request on the next process frame by setting its ``request`` value to ``AnimationNodeOneShot.ONE_SHOT_REQUEST_NONE``.
 
 .. tabs::
  .. code-tab:: gdscript GDScript
@@ -116,16 +113,16 @@ After setting the request and changing the animation playback, the one-shot node
  .. code-tab:: csharp
 
     // Play child animation connected to "shot" port.
-    animationTree.Set("parameters/OneShot/request", AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE);
+    animationTree.Set("parameters/OneShot/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
 
     // Abort child animation connected to "shot" port.
-    animationTree.Set("parameters/OneShot/request", AnimationNodeOneShot.ONE_SHOT_REQUEST_ABORT);
+    animationTree.Set("parameters/OneShot/request", (int)AnimationNodeOneShot.OneShotRequest.Abort);
 
     // Get current state (read-only).
     animationTree.Get("parameters/OneShot/active");
 
 TimeSeek
-^^^^^^^^
+~~~~~~~~
 
 This node can be used to cause a seek command to happen to any sub-children of the animation graph. Use this node type to play an ``Animation`` from the start or a certain playback position inside the ``AnimationNodeBlendTree``.
 
@@ -153,15 +150,15 @@ After setting the time and changing the animation playback, the seek node automa
     animationTree.Set("parameters/TimeSeek/seek_request", 12.0);
 
 TimeScale
-^^^^^^^^^
+~~~~~~~~~
 
-Allows scaling the speed of the animation (or reverse it) in any children nodes. Setting it to 0 will pause the animation.
+Allows scaling the speed of the animation (or reverse it) connected to the `in` input via the `scale` parameter. Setting the `scale` to 0 will pause the animation.
 
 Transition
-^^^^^^^^^^
+~~~~~~~~~~
 
 Very simple state machine (when you don't want to cope with a ``StateMachine`` node). Animations can be connected to the outputs and transition times can be specified.
-After setting the request and changing the animation playback, the transition node automatically clears the request on the next process frame by setting its [code]transition_request[/code] value to empty.
+After setting the request and changing the animation playback, the transition node automatically clears the request on the next process frame by setting its ``transition_request`` value to an empty string (``""``).
 
 .. tabs::
  .. code-tab:: gdscript GDScript
@@ -193,7 +190,7 @@ After setting the request and changing the animation playback, the transition no
     animationTree.Get("parameters/Transition/current_index");
 
 BlendSpace2D
-^^^^^^^^^^^^
+~~~~~~~~~~~~
 
 ``BlendSpace2D`` is a node to do advanced blending in two dimensions. Points are added to a two-dimensional space and then a position
 can be controlled to determine blending:
@@ -217,12 +214,12 @@ This mode can be changed in the *Blend* menu:
 .. image:: img/animtree10.png
 
 BlendSpace1D
-^^^^^^^^^^^^
+~~~~~~~~~~~~
 
 This is similar to 2D blend spaces, but in one dimension (so triangles are not needed).
 
 StateMachine
-^^^^^^^^^^^^
+~~~~~~~~~~~~
 
 This node acts as a state machine with root nodes as states. Root nodes can be created and connected via lines. States are connected via *Transitions*,
 which are connections with special properties. Transitions are uni-directional, but two can be used to connect in both directions.

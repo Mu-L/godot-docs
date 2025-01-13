@@ -39,7 +39,7 @@ Input actions are explained in detail on the :ref:`doc_inputevent` page.
     different code paths since these have to be handled separately.
 
 Which Input singleton method should I use?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are 3 ways to get input in an analog-aware way:
 
@@ -57,8 +57,10 @@ There are 3 ways to get input in an analog-aware way:
     # The line below is similar to `get_vector()`, except that it handles
     # the deadzone in a less optimal way. The resulting deadzone will have
     # a square-ish shape when it should ideally have a circular shape.
-    var velocity = Vector2(Input.get_action_strength("move_right") - Input.get_action_strength("move_left"),
-		Input.get_action_strength("move_back") - Input.get_action_strength("move_forward")).clamped(1)
+    var velocity = Vector2(
+            Input.get_action_strength("move_right") - Input.get_action_strength("move_left"),
+            Input.get_action_strength("move_back") - Input.get_action_strength("move_forward")
+    ).limit_length(1.0)
 
  .. code-tab:: csharp
 
@@ -70,8 +72,10 @@ There are 3 ways to get input in an analog-aware way:
     // The line below is similar to `get_vector()`, except that it handles
     // the deadzone in a less optimal way. The resulting deadzone will have
     // a square-ish shape when it should ideally have a circular shape.
-    Vector2 velocity = new Vector2(Input.GetActionStrength("move_right") - Input.GetActionStrength("move_left"),
-		Input.GetActionStrength("move_back") - Input.GetActionStrength("move_forward")).Clamped(1);
+    Vector2 velocity = new Vector2(
+            Input.GetActionStrength("move_right") - Input.GetActionStrength("move_left"),
+            Input.GetActionStrength("move_back") - Input.GetActionStrength("move_forward")
+    ).LimitLength(1.0);
 
 - When you have one axis that can go both ways (such as a throttle on a
   flight stick), or when you want to handle separate axes individually,
@@ -132,10 +136,6 @@ use ``Input.is_action_pressed()``:
     held, ``Input.is_action_just_pressed()`` will only return ``true`` for one
     frame after the button has been pressed.
 
-In Godot versions before 3.4, such as 3.3, ``Input.get_vector()`` and
-``Input.get_axis()`` aren't available. Only ``Input.get_action_strength()``
-and ``Input.is_action_pressed()`` are available in Godot 3.3.
-
 Vibration
 ---------
 
@@ -167,7 +167,7 @@ If you're used to handling keyboard and mouse input, you may be surprised by how
 controllers handle specific situations.
 
 Dead zone
-^^^^^^^^^
+~~~~~~~~~
 
 Unlike keyboards and mice, controllers offer axes with *analog* inputs. The
 upside of analog inputs is that they offer additional flexibility for actions.
@@ -195,7 +195,7 @@ specified as an optional 5th parameter. If not specified, it will calculate the
 average deadzone value from all of the actions in the vector.
 
 "Echo" events
-^^^^^^^^^^^^^
+~~~~~~~~~~~~~
 
 Unlike keyboard input, holding down a controller button such as a D-pad
 direction will **not** generate repeated input events at fixed intervals (also
@@ -208,6 +208,71 @@ If you want controller buttons to send echo events, you will have to generate
 at regular intervals. This can be accomplished
 with the help of a :ref:`class_Timer` node.
 
+Window focus
+~~~~~~~~~~~~
+
+Unlike keyboard input, controller inputs can be seen by **all** windows on the
+operating system, including unfocused windows.
+
+While this is useful for
+`third-party split screen functionality <https://nucleus-coop.github.io/>`__,
+it can also have adverse effects. Players may accidentally send controller inputs
+to the running project while interacting with another window.
+
+If you wish to ignore events when the project window isn't focused, you will
+need to create an :ref:`autoload <doc_singletons_autoload>` called ``Focus``
+with the following script and use it to check all your inputs:
+
+::
+
+    # Focus.gd
+    extends Node
+
+    var focused := true
+
+    func _notification(what: int) -> void:
+        match what:
+            NOTIFICATION_APPLICATION_FOCUS_OUT:
+                focused = false
+            NOTIFICATION_APPLICATION_FOCUS_IN:
+                focused = true
+
+
+    func input_is_action_pressed(action: StringName) -> bool:
+        if focused:
+            return Input.is_action_pressed(action)
+
+        return false
+
+
+    func event_is_action_pressed(event: InputEvent, action: StringName) -> bool:
+        if focused:
+            return event.is_action_pressed(action)
+
+        return false
+
+Then, instead of using ``Input.is_action_pressed(action)``, use
+``Focus.input_is_action_pressed(action)`` where ``action`` is the name of
+the input action. Also, instead of using ``event.is_action_pressed(action)``,
+use ``Focus.event_is_action_pressed(event, action)`` where ``event`` is an
+InputEvent reference and ``action`` is the name of the input action.
+
+Power saving prevention
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Unlike keyboard and mouse input, controller inputs do **not** inhibit sleep and
+power saving measures (such as turning off the screen after a certain amount of
+time has passed).
+
+To combat this, Godot enables power saving prevention by default when a project
+is running. If you notice the system is turning off its display when playing
+with a gamepad, check the value of **Display > Window > Energy Saving > Keep Screen On**
+in the Project Settings.
+
+On Linux, power saving prevention requires the engine to be able to use D-Bus.
+Check whether D-Bus is installed and reachable if running the project within a
+Flatpak, as sandboxing restrictions may make this impossible by default.
+
 Troubleshooting
 ---------------
 
@@ -218,14 +283,18 @@ Troubleshooting
     on GitHub.
 
 My controller isn't recognized by Godot.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First, check that your controller is recognized by other applications. You can
 use the `Gamepad Tester <https://gamepad-tester.com/>`__ website to confirm that
 your controller is recognized.
 
+On Windows Godot only supports up to 4 controllers at a time. This is
+because Godot uses the XInput API, which is limited to supporting 4 controllers
+at once. Additional controllers above this limit are ignored by Godot.
+
 My controller has incorrectly mapped buttons or axes.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First, if your controller provides some kind of firmware update utility,
 make sure to run it to get the latest fixes from the manufacturer. For instance,
@@ -242,7 +311,7 @@ You can contribute an updated mapping to be included in the next Godot version
 by opening a pull request on the linked repository.
 
 There are many ways to create mappings. One option is to use the mapping wizard
-in the `official Joypads demo <https://godotengine.org/asset-library/asset/140>`__.
+in the `official Joypads demo <https://godotengine.org/asset-library/asset/2785>`__.
 Once you have a working mapping for your controller, you can test it by defining
 the ``SDL_GAMECONTROLLERCONFIG`` environment variable before running Godot:
 
@@ -268,24 +337,25 @@ additional controller mappings, you can add them by calling
 as early as possible in a script's ``_ready()`` function.
 
 My controller works on a given platform, but not on another platform.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Linux
-~~~~~
+^^^^^
 
-Prior to Godot 3.3, official Godot binaries were compiled with udev support
-but self-compiled binaries were compiled *without* udev support unless
-``udev=yes`` was passed on the SCons command line. This made controller
-hotplugging support unavailable in self-compiled binaries.
+If you're using a self-compiled engine binary, make sure it was compiled with
+udev support. This is enabled by default, but it is possible to disable udev
+support by specifying ``udev=no`` on the SCons command line. If you're using an
+engine binary supplied by a Linux distribution, double-check whether it was
+compiled with udev support.
+
+Controllers can still work without udev support, but it is less reliable as
+regular polling must be used to check for controllers being connected or
+disconnected during gameplay (hotplugging).
 
 HTML5
-~~~~~
+^^^^^
 
 HTML5 controller support is often less reliable compared to "native" platforms.
 The quality of controller support tends to vary wildly across browsers. As a
 result, you may have to instruct your players to use a different browser if they
 can't get their controller to work.
-
-Also, note that
-`controller support was significantly improved <https://github.com/godotengine/godot/pull/45078>`__
-in Godot 3.3 and later.

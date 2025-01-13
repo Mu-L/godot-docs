@@ -1,12 +1,10 @@
-:article_outdated: True
-
 .. _doc_general_optimization:
 
 General optimization tips
 =========================
 
 Introduction
-~~~~~~~~~~~~
+------------
 
 In an ideal world, computers would run at infinite speed. The only limit to
 what we could achieve would be our imagination. However, in the real world, it's
@@ -25,7 +23,7 @@ To achieve the best results, we have two approaches:
 And preferably, we will use a blend of the two.
 
 Smoke and mirrors
-^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~
 
 Part of working smarter is recognizing that, in games, we can often get the
 player to believe they're in a world that is far more complex, interactive, and
@@ -33,7 +31,7 @@ graphically exciting than it really is. A good programmer is a magician, and
 should strive to learn the tricks of the trade while trying to invent new ones.
 
 The nature of slowness
-^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~
 
 To the outside observer, performance problems are often lumped together.
 But in reality, there are several different kinds of performance problems:
@@ -48,7 +46,7 @@ But in reality, there are several different kinds of performance problems:
 Each of these are annoying to the user, but in different ways.
 
 Measuring performance
-=====================
+---------------------
 
 Probably the most important tool for optimization is the ability to measure
 performance - to identify where bottlenecks are, and to measure the success of
@@ -57,12 +55,18 @@ our attempts to speed them up.
 There are several methods of measuring performance, including:
 
 - Putting a start/stop timer around code of interest.
-- Using the Godot profiler.
-- Using external third-party CPU profilers.
-- Using GPU profilers/debuggers such as
-  `NVIDIA Nsight Graphics <https://developer.nvidia.com/nsight-graphics>`__
-  or `apitrace <https://apitrace.github.io/>`__.
-- Checking the frame rate (with V-Sync disabled).
+- Using the :ref:`Godot profiler <doc_the_profiler>`.
+- Using :ref:`external CPU profilers <doc_using_cpp_profilers>`.
+- Using external GPU profilers/debuggers such as
+  `NVIDIA Nsight Graphics <https://developer.nvidia.com/nsight-graphics>`__,
+  `Radeon GPU Profiler <https://gpuopen.com/rgp/>`__,
+  `Intel Graphics Performance Analyzers <https://www.intel.com/content/www/us/en/developer/tools/graphics-performance-analyzers/overview.html>`__, or
+  `Arm Performance Studio <https://developer.arm.com/Tools%20and%20Software/Arm%20Performance%20Studio>`__.
+- Checking the frame rate (with V-Sync disabled). Third-party utilities such as
+  `RivaTuner Statistics Server <https://www.guru3d.com/files-details/rtss-rivatuner-statistics-server-download.html>`__
+  (Windows) or `MangoHud <https://github.com/flightlessmango/MangoHud>`__
+  (Linux) can also be useful here.
+- Using an unofficial `debug menu add-on <https://github.com/godot-extended-libraries/godot-debug-menu>`__.
 
 Be very aware that the relative performance of different areas can vary on
 different hardware. It's often a good idea to measure timings on more than one
@@ -87,14 +91,14 @@ As a result of these limitations, you often need to use detective work to find
 out where bottlenecks are.
 
 Detective work
-~~~~~~~~~~~~~~
+--------------
 
 Detective work is a crucial skill for developers (both in terms of performance,
 and also in terms of bug fixing). This can include hypothesis testing, and
 binary search.
 
 Hypothesis testing
-^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~
 
 Say, for example, that you believe sprites are slowing down your game.
 You can test this hypothesis by:
@@ -108,7 +112,7 @@ the performance drop?
   size, and measuring performance.
 
 Binary search
-^^^^^^^^^^^^^
+~~~~~~~~~~~~~
 
 If you know that frames are taking much longer than they should, but you're
 not sure where the bottleneck lies. You could begin by commenting out
@@ -119,7 +123,7 @@ Once you know which of the two halves contains the bottleneck, you can
 repeat this process until you've pinned down the problematic area.
 
 Profilers
-=========
+---------
 
 Profilers allow you to time your program while running it. Profilers then
 provide results telling you what percentage of time was spent in different
@@ -133,7 +137,7 @@ and lead to slower performance.
 For more info about using Godot's built-in profiler, see :ref:`doc_the_profiler`.
 
 Principles
-==========
+----------
 
 `Donald Knuth <https://en.wikipedia.org/wiki/Donald_Knuth>`__ said:
 
@@ -222,7 +226,7 @@ algorithms and data structures are the best they can be. Data access should be
 local (to make best use of CPU cache), and it can often be better to use compact
 storage of data (again, always profile to test results). Often, you precalculate
 heavy computations ahead of time. This can be done by performing the computation
-when loading a level, by loading a file containing precalculated data or simply
+when loading a level, by loading a file containing precalculated data, or
 by storing the results of complex calculations into a script constant and
 reading its value.
 
@@ -237,7 +241,7 @@ positive effect will be outweighed by the negatives of more complex code, and
 you may choose to leave out that optimization.
 
 Appendix
-========
+--------
 
 Bottleneck math
 ~~~~~~~~~~~~~~~

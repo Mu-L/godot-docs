@@ -50,10 +50,10 @@ You should not worry about manipulating rows directly, as we usually
 work with columns. However, you can think of the rows of the matrix
 as showing which vectors contribute to moving in a given direction.
 
-When we refer to a value such as `t.x.y`, that's the Y component of
+When we refer to a value such as ``t.x.y``, that's the Y component of
 the X column vector. In other words, the bottom-left of the matrix.
-Similarly, `t.x.x` is top-left, `t.y.x` is top-right, and `t.y.y`
-is bottom-right, where `t` is the Transform2D.
+Similarly, ``t.x.x`` is top-left, ``t.y.x`` is top-right, and ``t.y.y``
+is bottom-right, where ``t`` is the Transform2D.
 
 Scaling the transformation matrix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -85,8 +85,8 @@ To do this in code, we multiply each of the vectors:
 
     Transform2D t = Transform2D.Identity;
     // Scale
-    t.x *= 2;
-    t.y *= 2;
+    t.X *= 2;
+    t.Y *= 2;
     Transform = t; // Change the node's transform to what we calculated.
 
 If we wanted to return it to its original scale, we can multiply
@@ -184,7 +184,7 @@ matrix, you can use ``atan2(t.x.y, t.x.x)``, where t is the Transform2D.
 Basis of the transformation matrix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-So far we have only been working with the `x` and `y`, vectors, which
+So far we have only been working with the ``x`` and ``y``, vectors, which
 are in charge of representing rotation, scale, and/or shearing
 (advanced, covered at the end). The X and Y vectors are together
 called the *basis* of the transformation matrix. The terms "basis"
@@ -222,11 +222,12 @@ to set its ``origin`` vector to (1, 2):
 
 .. image:: img/matrices_and_transforms/translate.png
 
-There is also a ``translated()`` method, which performs a different
-operation to adding or changing ``origin`` directly. The ``translated()``
+There is also a ``translated_local()`` method, which performs a different
+operation to adding or changing ``origin`` directly. The ``translated_local()``
 method will translate the object *relative to its own rotation*.
 For example, an object rotated 90 degrees clockwise will move to
-the right when ``translated()`` with ``Vector2.UP``.
+the right when ``translated_local()`` with ``Vector2.UP``. To translate
+*relative to the global/parent frame* use ``translated()`` instead.
 
 .. note:: Godot's 2D uses coordinates based on pixels, so in actual
           projects you will want to translate by hundreds of units.
@@ -324,7 +325,7 @@ As an example, let's set Y to (1, 1):
 
     Transform2D t = Transform2D.Identity;
     // Shear by setting Y to (1, 1)
-    t.y = Vector2.One;
+    t.Y = Vector2.One;
     Transform = t; // Change the node's transform to what we calculated.
 
 .. note:: You can't set the raw values of a Transform2D in the editor,
@@ -351,7 +352,7 @@ from X*1 + Y*-1, which is (1, 0) - (1, 1), or (1 - 1, 0 - 1), or (0, -1).
 This matches up with our observation of where the top-right corner
 of the image is.
 
-Hopefully you now fully understand the how a transformation matrix affects
+Hopefully you now fully understand how a transformation matrix affects
 the object, and the relationship between the basis vectors and how the
 object's "UV" or "intra-coordinates" have their world position changed.
 
@@ -563,21 +564,21 @@ transformations:
     // The transform is the identity transform.
 
 Transforming a position by a transform and its inverse results in the
-same position (same for "xform_inv"):
+same position:
 
 .. tabs::
  .. code-tab:: gdscript GDScript
 
     var ti = transform.affine_inverse()
-    position = transform.xform(position)
-    position = ti.xform(position)
+    position = transform * position
+    position = ti * position
     # The position is the same as before.
 
  .. code-tab:: csharp
 
     Transform2D ti = Transform.AffineInverse();
-    Position = Transform.Xform(Position);
-    Position = ti.Xform(Position);
+    Position = Transform * Position;
+    Position = ti * Position;
     // The position is the same as before.
 
 How does it all work in 3D?
@@ -605,6 +606,9 @@ to get an understanding of how they work. Godot allows you to edit
 this project which has colored lines and cubes to help visualize the
 :ref:`class_Basis` vectors and the origin in both 2D and 3D:
 https://github.com/godotengine/godot-demo-projects/tree/master/misc/matrix_transform
+
+.. UPDATE: May change in future. When you can edit a Node2D's transform matrix
+.. directly, remove or update this note.
 
 .. note:: You cannot edit Node2D's transform matrix directly in Godot 4.0's
           inspector. This may be changed in a future release of Godot.

@@ -1,5 +1,3 @@
-:article_outdated: True
-
 ..
     Intention:
 
@@ -44,7 +42,7 @@ icon, which we often use for prototyping in the community.
 We need to create a Sprite2D node to display it in the game. In the Scene dock,
 click the Other Node button.
 
-.. image:: img/scripting_first_script_click_other_node.png
+.. image:: img/scripting_first_script_click_other_node.webp
 
 Type "Sprite2D" in the search bar to filter nodes and double-click on Sprite2D
 to create the node.
@@ -67,11 +65,9 @@ slot.
     You can create Sprite2D nodes automatically by dragging and dropping images
     on the viewport.
 
-    .. image:: img/scripting_first_script_dragging_sprite.png
-
 Then, click and drag the icon in the viewport to center it in the game view.
 
-.. image:: img/scripting_first_script_centering_sprite.png
+.. image:: img/scripting_first_script_centering_sprite.webp
 
 Creating a new script
 ---------------------
@@ -85,11 +81,16 @@ The Attach Node Script window appears. It allows you to select the script's
 language and file path, among other options.
 
 Change the Template field from "Node: Default" to "Object: Empty" to start with a clean file. Leave the
-other options by default and click the Create button to create the script.
+other options set to their default values and click the Create button to create the script.
 
 .. image:: img/scripting_first_script_attach_node_script.webp
 
-The Script workspace should appear with your new ``Sprite2D.gd`` file open and
+.. note::
+
+    C# script names need to match their class name. In this case, you should name the
+    file ``MySprite2D.cs``.
+
+The Script workspace should appear with your new ``sprite_2d.gd`` file open and
 the following line of code:
 
 .. tabs::
@@ -100,8 +101,9 @@ the following line of code:
  .. code-tab:: csharp C#
 
     using Godot;
-
-    public partial class Sprite : Sprite2D
+    using System;
+    
+    public partial class MySprite2D : Sprite2D
     {
     }
 
@@ -143,7 +145,7 @@ Add the following code to your script:
 
  .. code-tab:: csharp C#
 
-    public Sprite()
+    public MySprite2D()
     {
         GD.Print("Hello, world!");
     }
@@ -163,7 +165,7 @@ Save the scene as ``sprite_2d.tscn`` if you haven't already, then press :kbd:`F6
 to run it. Look at the **Output** bottom panel that expands.
 It should display "Hello, world!".
 
-.. image:: img/scripting_first_script_print_hello_world.png
+.. image:: img/scripting_first_script_print_hello_world.webp
 
 Delete the ``_init()`` function, so you're only left with the line ``extends
 Sprite2D``.
@@ -183,8 +185,8 @@ angular speed in radians per second.  Add the following after the ``extends Spri
 
  .. code-tab:: csharp C#
 
-    private int Speed = 400;
-    private float AngularSpeed = Mathf.Pi;
+    private int _speed = 400;
+    private float _angularSpeed = Mathf.Pi;
 
 Member variables sit near the top of the script, after any "extends" lines,
 but before functions. Every node
@@ -226,7 +228,7 @@ At the bottom of the script, define the function:
 
     public override void _Process(double delta)
     {
-        Rotation += AngularSpeed * (float)delta;
+        Rotation += _angularSpeed * (float)delta;
     }
 
 The ``func`` keyword defines a new function. After it, we have to write the
@@ -244,7 +246,7 @@ our sprite's rotation every frame. Here, ``rotation`` is a property inherited
 from the class ``Node2D``, which ``Sprite2D`` extends. It controls the rotation
 of our node and works with radians.
 
-.. tip:: In the code editor, you can ctrl-click on any built-in property or
+.. tip:: In the code editor, you can Ctrl-click (Cmd-click on MacOS) on any built-in property or
          function like ``position``, ``rotation``, or ``_process`` to open the
          corresponding documentation in a new tab.
 
@@ -260,7 +262,7 @@ Moving forward
 ~~~~~~~~~~~~~~
 
 Let's now make the node move. Add the following two lines inside of the ``_process()``
-function, ensuring the new lines are indented the same way as the ``rotation += angular * delta`` line before
+function, ensuring the new lines are indented the same way as the ``rotation += angular_speed * delta`` line before
 them.
 
 .. tabs::
@@ -272,7 +274,7 @@ them.
 
  .. code-tab:: csharp C#
 
-    var velocity = Vector2.Up.Rotated(Rotation) * Speed;
+    var velocity = Vector2.Up.Rotated(Rotation) * _speed;
 
     Position += velocity * (float)delta;
 
@@ -283,7 +285,7 @@ defines a local variable: it only exists within the function's scope.
 We define a local variable named ``velocity``, a 2D vector representing both a
 direction and a speed. To make the node move forward, we start from the Vector2
 class's constant ``Vector2.UP``, a vector pointing up, and rotate it by calling the
-``rotated()`` method on any ``Vector2``. This expression, ``Vector2.UP.rotated(rotation)``,
+Vector2 method ``rotated()``. This expression, ``Vector2.UP.rotated(rotation)``,
 is a vector pointing forward relative to our icon. Multiplied by our ``speed``
 property, it gives us a velocity we can use to move the node forward.
 
@@ -299,13 +301,13 @@ Run the scene to see the Godot head run in circles.
           walls or the floor. In :ref:`doc_your_first_2d_game`, you will learn
           another approach to moving objects while detecting collisions.
 
-Our node currently moves by itself. In the next part
+Our node currently moves by itself. In the next part,
 :ref:`doc_scripting_player_input`, we'll use player input to control it.
 
 Complete script
 ---------------
 
-Here is the complete ``Sprite2D.gd`` file for reference.
+Here is the complete ``sprite_2d.gd`` file for reference.
 
 .. tabs::
  .. code-tab:: gdscript GDScript
@@ -326,16 +328,17 @@ Here is the complete ``Sprite2D.gd`` file for reference.
  .. code-tab:: csharp C#
 
     using Godot;
-
-    public partial class Sprite : Sprite2D
+    using System;
+    
+    public partial class MySprite2D : Sprite2D
     {
-        private int Speed = 400;
-        private float AngularSpeed = Mathf.Pi;
+        private int _speed = 400;
+        private float _angularSpeed = Mathf.Pi;
 
         public override void _Process(double delta)
         {
-            Rotation += AngularSpeed * (float)delta;
-            var velocity = Vector2.Up.Rotated(Rotation) * Speed;
+            Rotation += _angularSpeed * (float)delta;
+            var velocity = Vector2.Up.Rotated(Rotation) * _speed;
 
             Position += velocity * (float)delta;
         }

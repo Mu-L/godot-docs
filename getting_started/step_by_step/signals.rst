@@ -22,35 +22,52 @@ limits `coupling
 code flexible.
 
 For example, you might have a life bar on the screen that represents the
-player’s health. When the player takes damage or uses a healing potion, you want
+player's health. When the player takes damage or uses a healing potion, you want
 the bar to reflect the change. To do so, in Godot, you would use signals.
 
-.. note:: As mentioned in the introduction, signals are Godot's version of the
-          observer pattern. You can learn more about it here:
-          https://gameprogrammingpatterns.com/observer.html
+Like methods (:ref:`class_callable`), signals are a first-class type since Godot
+4.0. This means you can pass them around as method arguments directly without
+having to pass them as strings, which allows for better autocompletion and is
+less error-prone. See the :ref:`class_signal` class reference for a list of
+what you can do with the Signal type directly.
+
+.. seealso::
+
+    As mentioned in the introduction, signals are Godot's version of the
+    observer pattern. You can learn more about it in
+    `Game Programming Patterns <https://gameprogrammingpatterns.com/observer.html>`__.
 
 We will now use a signal to make our Godot icon from the previous lesson
 (:ref:`doc_scripting_player_input`) move and stop by pressing a button.
 
-.. Example
+.. note:: For this project, we will be following the Godot naming conventions.
+
+          - **GDScript**: Classes (nodes) use PascalCase, variables and
+            functions use snake_case, and constants use ALL_CAPS (See
+            :ref:`doc_gdscript_styleguide`).
+
+          - **C#**: Classes, export variables and methods use PascalCase,
+            private fields use _camelCase, local variables and parameters use
+            camelCase (See :ref:`doc_c_sharp_styleguide`). Be careful to type
+            the method names precisely when connecting signals.
 
 Scene setup
 -----------
 
-To add a button to our game, we will create a new main scene which will include
-both a button and the ``Sprite2D.tscn`` scene that we scripted in previous
-lessons.
+To add a button to our game, we will create a new scene which will include
+both a :ref:`Button <class_button>` and the ``sprite_2d.tscn`` scene we created in
+the :ref:`doc_scripting_first_script` lesson.
 
 Create a new scene by going to the menu Scene -> New Scene.
 
-.. image:: img/signals_01_new_scene.png
+.. image:: img/signals_01_new_scene.webp
 
-In the Scene dock, click the 2D Scene button. This will add a Node2D as our
-root.
+In the Scene dock, click the 2D Scene button. This will add
+a :ref:`Node2D <class_Node2D>` as our root.
 
-.. image:: img/signals_02_2d_scene.png
+.. image:: img/signals_02_2d_scene.webp
 
-In the FileSystem dock, click and drag the ``Sprite2D.tscn`` file you saved
+In the FileSystem dock, click and drag the ``sprite_2d.tscn`` file you saved
 previously onto the Node2D to instantiate it.
 
 .. image:: img/signals_03_dragging_scene.png
@@ -58,11 +75,11 @@ previously onto the Node2D to instantiate it.
 We want to add another node as a sibling of the Sprite2D. To do so, right-click
 on Node2D and select Add Child Node.
 
-.. image:: img/signals_04_add_child_node.png
+.. image:: img/signals_04_add_child_node.webp
 
-Search for the Button node type and add it.
+Search for the :ref:`Button <class_button>` node and add it.
 
-.. image:: img/signals_05_add_button.png
+.. image:: img/signals_05_add_button.webp
 
 The node is small by default. Click and drag on the bottom-right handle of the
 Button in the viewport to resize it.
@@ -71,20 +88,21 @@ Button in the viewport to resize it.
 
 If you don't see the handles, ensure the select tool is active in the toolbar.
 
-.. image:: img/signals_07_select_tool.png
+.. image:: img/signals_07_select_tool.webp
 
 Click and drag on the button itself to move it closer to the sprite.
 
 You can also write a label on the Button by editing its Text property in the
-Inspector. Enter "Toggle motion".
+Inspector. Enter ``Toggle motion``.
 
-.. image:: img/signals_08_toggle_motion_text.png
+.. image:: img/signals_08_toggle_motion_text.webp
 
 Your scene tree and viewport should look like this.
 
 .. image:: img/signals_09_scene_setup.png
 
-Save your newly created scene. You can then run it with :kbd:`F6` (:kbd:`Cmd + R` on macOS).
+Save your newly created scene as ``node_2d.tscn``, if you haven't already.
+You can then run it with :kbd:`F6` (:kbd:`Cmd + R` on macOS).
 At the moment, the button will be visible, but nothing will happen if you
 press it.
 
@@ -99,15 +117,15 @@ lesson.
 You can connect signals in the Node dock. Select the Button node and, on the
 right side of the editor, click on the tab named "Node" next to the Inspector.
 
-.. image:: img/signals_10_node_dock.png
+.. image:: img/signals_10_node_dock.webp
 
 The dock displays a list of signals available on the selected node.
 
-.. image:: img/signals_11_pressed_signals.png
+.. image:: img/signals_11_pressed_signals.webp
 
 Double-click the "pressed" signal to open the node connection window.
 
-.. image:: img/signals_12_node_connection.png
+.. image:: img/signals_12_node_connection.webp
 
 There, you can connect the signal to the Sprite2D node. The node needs a
 receiver method, a function that Godot will call when the Button emits the
@@ -126,6 +144,12 @@ methods "_on_node_name_signal_name". Here, it'll be "_on_button_pressed".
    function, add arguments to the callback, and set options. You can
    toggle the mode in the window's bottom-right by clicking the Advanced
    button.
+
+.. note::
+
+    If you are using an external editor (such as VS Code), this
+    automatic code generation might not work. In this case, you need to connect
+    the signal via code as explained in the next section.
 
 Click the Connect button to complete the signal connection and jump to the
 Script workspace. You should see the new method with a connection icon in the
@@ -155,6 +179,7 @@ the ``not`` keyword to invert the value.
 
  .. code-tab:: csharp C#
 
+    // We also specified this function name in PascalCase in the editor's connection window.
     private void OnButtonPressed()
     {
         SetProcess(!IsProcessing());
@@ -184,7 +209,7 @@ following code, which we saw two lessons ago:
         Position += velocity * (float)delta;
     }
 
-Your complete ``Sprite2D.gd`` code should look like the following.
+Your complete ``sprite_2d.gd`` code should look like the following.
 
 .. tabs::
  .. code-tab:: gdscript GDScript
@@ -220,6 +245,7 @@ Your complete ``Sprite2D.gd`` code should look like the following.
             Position += velocity * (float)delta;
         }
 
+        // We also specified this function name in PascalCase in the editor's connection window.
         private void OnButtonPressed()
         {
             SetProcess(!IsProcessing());
@@ -238,7 +264,7 @@ Let's use a different node here. Godot has a :ref:`Timer <class_Timer>` node
 that's useful to implement skill cooldown times, weapon reloading, and more.
 
 Head back to the 2D workspace. You can either click the "2D" text at the top of
-the window or press :kbd:`Ctrl + F1` (:kbd:`Alt + 1` on macOS).
+the window or press :kbd:`Ctrl + F1` (:kbd:`Ctrl + Cmd + 1` on macOS).
 
 In the Scene dock, right-click on the Sprite2D node and add a new child node.
 Search for Timer and add the corresponding node. Your scene should now look like
@@ -265,7 +291,7 @@ We need to do two operations to connect the nodes via code:
           listen to the Timer's "timeout" signal.
 
 We want to connect the signal when the scene is instantiated, and we can do that
-using the :ref:`Node._ready() <class_Node_method__ready>` built-in function,
+using the :ref:`Node._ready() <class_Node_private_method__ready>` built-in function,
 which is called automatically by the engine when a node is fully instantiated.
 
 To get a reference to a node relative to the current one, we use the method
@@ -313,7 +339,7 @@ which the script is attached. When the Timer emits ``timeout``, we want to call
 the function ``_on_timer_timeout()``, that we need to define. Let's add it at the
 bottom of our script and use it to toggle our sprite's visibility.
 
-.. note:: By convention, we name these callback methods in GDScript as 
+.. note:: By convention, we name these callback methods in GDScript as
           "_on_node_name_signal_name" and in C# as "OnNodeNameSignalName".
           Here, it'll be "_on_timer_timeout" for GDScript and OnTimerTimeout() for C#.
 
@@ -334,14 +360,14 @@ The ``visible`` property is a boolean that controls the visibility of our node.
 The line ``visible = not visible`` toggles the value. If ``visible`` is
 ``true``, it becomes ``false``, and vice-versa.
 
-If you run the scene now, you will see that the sprite blinks on and off, at one
+If you run the Node2D scene now, you will see that the sprite blinks on and off, at one
 second intervals.
 
 Complete script
 ---------------
 
 That's it for our little moving and blinking Godot icon demo!
-Here is the complete ``Sprite2D.gd`` file for reference.
+Here is the complete ``sprite_2d.gd`` file for reference.
 
 .. tabs::
  .. code-tab:: gdscript GDScript
@@ -354,7 +380,7 @@ Here is the complete ``Sprite2D.gd`` file for reference.
 
     func _ready():
         var timer = get_node("Timer")
-        timer.timeout.connect(_on_Timer_timeout)
+        timer.timeout.connect(_on_timer_timeout)
 
 
     func _process(delta):
@@ -367,7 +393,7 @@ Here is the complete ``Sprite2D.gd`` file for reference.
         set_process(not is_processing())
 
 
-    func _on_Timer_timeout():
+    func _on_timer_timeout():
         visible = not visible
 
  .. code-tab:: csharp C#
@@ -392,6 +418,7 @@ Here is the complete ``Sprite2D.gd`` file for reference.
             Position += velocity * (float)delta;
         }
 
+        // We also specified this function name in PascalCase in the editor's connection window.
         private void OnButtonPressed()
         {
             SetProcess(!IsProcessing());
@@ -441,7 +468,7 @@ reaches 0.
 Your signals work the same way as built-in ones: they appear in the Node tab and
 you can connect to them like any other.
 
-.. image:: img/signals_17_custom_signal.png
+.. image:: img/signals_17_custom_signal.webp
 
 To emit a signal in your scripts, call ``emit()`` on the signal.
 
@@ -471,7 +498,7 @@ names between parentheses:
 .. tabs::
  .. code-tab:: gdscript GDScript
 
-    extends Node
+    extends Node2D
 
     signal health_changed(old_value, new_value)
 

@@ -8,8 +8,22 @@ This is a (incomplete) list of API differences between C# and GDScript.
 General differences
 -------------------
 
-As explained in the :ref:`doc_c_sharp`, C# generally uses ``PascalCase`` instead
-of the ``snake_case`` used in GDScript and C++.
+As explained in :ref:`doc_c_sharp_general_differences`, ``PascalCase`` is used
+to access Godot APIs in C# instead of the ``snake_case`` used by GDScript and
+C++. Where possible, fields and getters/setters have been converted to
+properties. In general, the C# Godot API strives to be as idiomatic as is
+reasonably possible. See the :ref:`doc_c_sharp_styleguide`, which we encourage
+you to also use for your own C# code.
+
+In GDScript, the setters/getters of a property can be called directly, although
+this is not encouraged. In C#, only the property is defined. For example, to
+translate the GDScript code ``x.set_name("Friend")`` to C#, write
+``x.Name = "Friend";``.
+
+A C# IDE will provide intellisense, which is extremely useful when figuring out
+renamed C# APIs. The built-in Godot script editor has no support for C#
+intellisense, and it also doesn't provide many other C# development tools that
+are considered essential. See :ref:`doc_c_sharp_setup_external_editor`.
 
 Global scope
 ------------
@@ -19,7 +33,7 @@ does not allow declaring them in namespaces.
 Most global constants were moved to their own enums.
 
 Constants
-^^^^^^^^^
+~~~~~~~~~
 
 In C#, only primitive types can be constant. For example, the ``TAU`` constant
 is replaced by the ``Mathf.Tau`` constant, but the ``Vector2.RIGHT`` constant
@@ -39,7 +53,7 @@ GDScript                 C#
 =======================  ===========================================================
 
 Math functions
-^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~
 
 Math global functions, like ``abs``, ``acos``, ``asin``, ``atan`` and ``atan2``, are
 located under ``Mathf`` as ``Abs``, ``Acos``, ``Asin``, ``Atan`` and ``Atan2``.
@@ -52,7 +66,7 @@ contain other useful mathematical operations.
 .. _System.MathF: https://learn.microsoft.com/en-us/dotnet/api/system.mathf
 
 Random functions
-^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~
 
 Random global functions, like ``rand_range`` and ``rand_seed``, are located under ``GD``.
 Example: ``GD.RandRange`` and ``GD.RandSeed``.
@@ -64,7 +78,7 @@ Consider using `System.Random`_ or, if you need cryptographically strong randomn
 .. _System.Security.Cryptography.RandomNumberGenerator: https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.randomnumbergenerator
 
 Other functions
-^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~
 
 Many other global functions like ``print`` and ``var_to_str`` are located under ``GD``.
 Example: ``GD.Print`` and ``GD.VarToStr``.
@@ -81,7 +95,7 @@ GDScript                      C#
 ============================  =======================================================
 
 Tips
-^^^^
+~~~~
 
 Sometimes it can be useful to use the ``using static`` directive. This directive allows
 to access the members and nested types of a class without specifying the class name.
@@ -101,7 +115,7 @@ Example:
     }
 
 Full list of equivalences
-^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 List of Godot's global scope functions and their equivalent in C#:
 
@@ -112,9 +126,13 @@ abs                              Mathf.Abs
 absf                             Mathf.Abs
 absi                             Mathf.Abs
 acos                             Mathf.Acos
+acosh                            Mathf.Acosh
+angle_difference                 Mathf.AngleDifference
 asin                             Mathf.Asin
+asinh                            Mathf.Asinh
 atan                             Mathf.Atan
 atan2                            Mathf.Atan2
+atanh                            Mathf.Atanh
 bezier_derivative                Mathf.BezierDerivative
 bezier_interpolate               Mathf.BezierInterpolate
 bytes_to_var                     GD.BytesToVar
@@ -128,7 +146,7 @@ clampi                           Mathf.Clamp
 cos                              Mathf.Cos
 cosh                             Mathf.Cosh
 cubic_interpolate                Mathf.CubicInterpolate
-cubic_interpoalte_angle          Mathf.CubicInterpolateAngle
+cubic_interpolate_angle          Mathf.CubicInterpolateAngle
 cubic_interpolate_angle_in_time  Mathf.CubicInterpolateInTime
 cubic_interpolate_in_time        Mathf.CubicInterpolateAngleInTime
 db_to_linear                     Mathf.DbToLinear
@@ -188,6 +206,7 @@ randomize                        GD.Randomize
 remap                            Mathf.Remap
 rid_allocate_id                  N/A
 rid_from_int64                   N/A
+rotate_toward                    Mathf.RotateToward
 round                            Mathf.Round
 roundf                           Mathf.Round
 roundi                           Mathf.RoundToInt
@@ -207,6 +226,8 @@ str                              Use `$ string interpolation`_
 str_to_var                       GD.StrToVar
 tan                              Mathf.Tan
 tanh                             Mathf.Tanh
+type_convert                     Variant.As<T> or GD.Convert
+type_string                      Variant.Type.ToString
 typeof                           Variant.VariantType
 var_to_bytes                     GD.VarToBytes
 var_to_bytes_with_objects        GD.VarToBytesWithObjects
@@ -342,6 +363,17 @@ Example:
 
     Input.Singleton.JoyConnectionChanged += Input_JoyConnectionChanged;
 
+If you are developing main screen plugins, it is essential to note that
+``EditorInterface`` is not a static class in C#, unlike in GDScript.
+Therefore, you must use the singleton pattern to obtain an instance of the
+``EditorInterface``:
+
+====================  ==============================================================
+GDScript              C#
+====================  ==============================================================
+``EditorInterface``        ``EditorInterface.Singleton``
+====================  ==============================================================
+
 String
 ------
 
@@ -379,6 +411,7 @@ count                    StringExtensions.Count (Consider using `RegEx`_)
 countn                   StringExtensions.CountN (Consider using `RegEx`_)
 dedent                   StringExtensions.Dedent
 ends_with                `string.EndsWith`_
+erase                    `string.Remove`_ (Consider using `StringBuilder`_ to manipulate strings)
 find                     StringExtensions.Find (Consider using `string.IndexOf`_ or `string.IndexOfAny`_)
 findn                    StringExtensions.FindN (Consider using `string.IndexOf`_ or `string.IndexOfAny`_)
 format                   Use `$ string interpolation`_
@@ -390,6 +423,7 @@ get_slice                N/A
 get_slice_count          N/A
 get_slicec               N/A
 hash                     StringExtensions.Hash (Consider using `object.GetHashCode`_ unless you need to guarantee the same behavior as in GDScript)
+hex_decode               StringExtensions.HexDecode (Consider using `System.Convert.FromHexString`_)
 hex_to_int               StringExtensions.HexToInt (Consider using `int.Parse`_ or `long.Parse`_ with `System.Globalization.NumberStyles.HexNumber`_)
 humanize_size            N/A
 indent                   StringExtensions.Indent
@@ -414,8 +448,8 @@ lpad                     `string.PadLeft`_
 lstrip                   `string.TrimStart`_
 match                    StringExtensions.Match (Consider using `RegEx`_)
 matchn                   StringExtensions.MatchN (Consider using `RegEx`_)
-md5_buffer               StringExtensions.MD5Buffer (Consider using `System.Security.Cryptography.MD5.HashData`_)
-md5_text                 StringExtensions.MD5Text (Consider using `System.Security.Cryptography.MD5.HashData`_ with StringExtensions.HexEncode)
+md5_buffer               StringExtensions.Md5Buffer (Consider using `System.Security.Cryptography.MD5.HashData`_)
+md5_text                 StringExtensions.Md5Text (Consider using `System.Security.Cryptography.MD5.HashData`_ with StringExtensions.HexEncode)
 naturalnocasecmp_to      N/A (Consider using `string.Equals`_ or `string.Compare`_)
 nocasecmp_to             StringExtensions.NocasecmpTo or StringExtensions.CompareTo (Consider using `string.Equals`_ or `string.Compare`_)
 num                      `float.ToString`_ or `double.ToString`_
@@ -428,16 +462,17 @@ path_join                StringExtensions.PathJoin
 repeat                   Use `string constructor`_ or a `StringBuilder`_
 replace                  `string.Replace`_ or `RegEx`_
 replacen                 StringExtensions.ReplaceN (Consider using `string.Replace`_ or `RegEx`_)
+reverse                  N/A
 rfind                    StringExtensions.RFind (Consider using `string.LastIndexOf`_ or `string.LastIndexOfAny`_)
 rfindn                   StringExtensions.RFindN (Consider using `string.LastIndexOf`_ or `string.LastIndexOfAny`_)
 right                    StringExtensions.Right (Consider using `string.Substring`_ or `string.AsSpan`_)
 rpad                     `string.PadRight`_
 rsplit                   N/A
 rstrip                   `string.TrimEnd`_
-sha1_buffer              StringExtensions.SHA1Buffer (Consider using `System.Security.Cryptography.SHA1.HashData`_)
-sha1_text                StringExtensions.SHA1Text (Consider using `System.Security.Cryptography.SHA1.HashData`_ with StringExtensions.HexEncode)
-sha256_buffer            StringExtensions.SHA256Buffer (Consider using `System.Security.Cryptography.SHA256.HashData`_)
-sha256_text              StringExtensions.SHA256Text (Consider using `System.Security.Cryptography.SHA256.HashData`_ with StringExtensions.HexEncode)
+sha1_buffer              StringExtensions.Sha1Buffer (Consider using `System.Security.Cryptography.SHA1.HashData`_)
+sha1_text                StringExtensions.Sha1Text (Consider using `System.Security.Cryptography.SHA1.HashData`_ with StringExtensions.HexEncode)
+sha256_buffer            StringExtensions.Sha256Buffer (Consider using `System.Security.Cryptography.SHA256.HashData`_)
+sha256_text              StringExtensions.Sha256Text (Consider using `System.Security.Cryptography.SHA256.HashData`_ with StringExtensions.HexEncode)
 similarity               StringExtensions.Similarity
 simplify_path            StringExtensions.SimplifyPath
 split                    StringExtensions.Split (Consider using `string.Split`_)
@@ -445,7 +480,7 @@ split_floats             StringExtensions.SplitFloat
 strip_edges              StringExtensions.StripEdges (Consider using `string.Trim`_, `string.TrimStart`_ or `string.TrimEnd`_)
 strip_escapes            StringExtensions.StripEscapes
 substr                   StringExtensions.Substr (Consider using `string.Substring`_ or `string.AsSpan`_)
-to_ascii_buffer          StringExtensions.ToASCIIBuffer (Consider using `System.Text.Encoding.ASCII.GetBytes`_)
+to_ascii_buffer          StringExtensions.ToAsciiBuffer (Consider using `System.Text.Encoding.ASCII.GetBytes`_)
 to_camel_case            StringExtensions.ToCamelCase
 to_float                 StringExtensions.ToFloat (Consider using `float.TryParse`_ or `double.TryParse`_)
 to_int                   StringExtensions.ToInt (Consider using `int.TryParse`_ or `long.TryParse`_)
@@ -453,9 +488,10 @@ to_lower                 `string.ToLower`_
 to_pascal_case           StringExtensions.ToPascalCase
 to_snake_case            StringExtensions.ToSnakeCase
 to_upper                 `string.ToUpper`_
-to_utf16_buffer          StringExtensions.ToUTF16Buffer (Consider using `System.Text.Encoding.UTF16.GetBytes`_)
-to_utf32_buffer          StringExtensions.ToUTF32Buffer (Consider using `System.Text.Encoding.UTF32.GetBytes`_)
-to_utf8_buffer           StringExtensions.ToUTF8Buffer (Consider using `System.Text.Encoding.UTF8.GetBytes`_)
+to_utf16_buffer          StringExtensions.ToUtf16Buffer (Consider using `System.Text.Encoding.UTF16.GetBytes`_)
+to_utf32_buffer          StringExtensions.ToUtf32Buffer (Consider using `System.Text.Encoding.UTF32.GetBytes`_)
+to_utf8_buffer           StringExtensions.ToUtf8Buffer (Consider using `System.Text.Encoding.UTF8.GetBytes`_)
+to_wchar_buffer          StringExtensions.ToUtf16Buffer in Windows and StringExtensions.ToUtf32Buffer in other platforms
 trim_prefix              StringExtensions.TrimPrefix
 trim_suffix              StringExtensions.TrimSuffix
 unicode_at               `string[int]`_ indexer
@@ -471,17 +507,20 @@ List of Godot's PackedByteArray methods that create a String and their C# equiva
 =========================  ==============================================================
 GDScript                   C#
 =========================  ==============================================================
-get_string_from_ascii      StringExtensions.GetStringFromASCII (Consider using `System.Text.Encoding.ASCII.GetString`_)
-get_string_from_utf16      StringExtensions.GetStringFromUTF16 (Consider using `System.Text.Encoding.UTF16.GetString`_)
-get_string_from_utf32      StringExtensions.GetStringFromUTF32 (Consider using `System.Text.Encoding.UTF32.GetString`_)
-get_string_from_utf8       StringExtensions.GetStringFromUTF8 (Consider using `System.Text.Encoding.UTF8.GetString`_)
+get_string_from_ascii      StringExtensions.GetStringFromAscii (Consider using `System.Text.Encoding.ASCII.GetString`_)
+get_string_from_utf16      StringExtensions.GetStringFromUtf16 (Consider using `System.Text.Encoding.UTF16.GetString`_)
+get_string_from_utf32      StringExtensions.GetStringFromUtf32 (Consider using `System.Text.Encoding.UTF32.GetString`_)
+get_string_from_utf8       StringExtensions.GetStringFromUtf8 (Consider using `System.Text.Encoding.UTF8.GetString`_)
 hex_encode                 StringExtensions.HexEncode (Consider using `System.Convert.ToHexString`_)
 =========================  ==============================================================
 
-* .NET contains many path utility methods available under the
-  `System.IO.Path`_
-  class that can be used when not dealing with Godot paths (paths that start
-  with ``res://`` or ``user://``)
+.. note::
+
+    .NET provides path utility methods under the
+    `System.IO.Path`_
+    class. They can only be used with native OS paths, not Godot paths
+    (paths that start with ``res://`` or ``user://``).
+    See :ref:`doc_data_paths`.
 
 .. _$ string interpolation: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/tokens/interpolated
 .. _double.ToString: https://learn.microsoft.com/en-us/dotnet/api/system.double.tostring
@@ -516,6 +555,7 @@ hex_encode                 StringExtensions.HexEncode (Consider using `System.Co
 .. _string.Length: https://learn.microsoft.com/en-us/dotnet/api/system.string.length
 .. _string.PadLeft: https://learn.microsoft.com/en-us/dotnet/api/system.string.padleft
 .. _string.PadRight: https://learn.microsoft.com/en-us/dotnet/api/system.string.padright
+.. _string.Remove: https://learn.microsoft.com/en-us/dotnet/api/system.string.remove
 .. _string.Replace: https://learn.microsoft.com/en-us/dotnet/api/system.string.replace
 .. _string.Split: https://learn.microsoft.com/en-us/dotnet/api/system.string.split
 .. _string.StartsWith: https://learn.microsoft.com/en-us/dotnet/api/system.string.startswith
@@ -526,6 +566,7 @@ hex_encode                 StringExtensions.HexEncode (Consider using `System.Co
 .. _string.ToLower: https://learn.microsoft.com/en-us/dotnet/api/system.string.tolower
 .. _string.ToUpper: https://learn.microsoft.com/en-us/dotnet/api/system.string.toupper
 .. _StringBuilder: https://learn.microsoft.com/en-us/dotnet/api/system.text.stringbuilder
+.. _System.Convert.FromHexString: https://learn.microsoft.com/en-us/dotnet/api/system.convert.fromhexstring
 .. _System.Convert.ToHexString: https://learn.microsoft.com/en-us/dotnet/api/system.convert.tohexstring
 .. _System.Globalization.NumberStyles.HexNumber: https://learn.microsoft.com/en-us/dotnet/api/system.globalization.numberstyles#system-globalization-numberstyles-hexnumber
 .. _System.IO.Path: https://learn.microsoft.com/en-us/dotnet/api/system.io.path
@@ -789,7 +830,7 @@ Dictionary
 ----------
 
 Use ``Godot.Collections.Dictionary`` for an untyped ``Variant`` dictionary.
-``Godot.Colelctions.Dictionary<TKey, TValue>`` is a type-safe wrapper around ``Godot.Collections.Dictionary``.
+``Godot.Collections.Dictionary<TKey, TValue>`` is a type-safe wrapper around ``Godot.Collections.Dictionary``.
 
 See also :ref:`Dictionary in C# <doc_c_sharp_collections_dictionary>`.
 
@@ -797,7 +838,7 @@ Variant
 -------
 
 ``Godot.Variant`` is used to represent Godot's native :ref:`Variant <class_Variant>` type.
-Any Variant-compatible type can be converted from/to it.
+Any :ref:`Variant-compatible type <c_sharp_variant_compatible_types>` can be converted from/to it.
 
 See also: :ref:`doc_c_sharp_variant`.
 
@@ -841,5 +882,8 @@ Example:
 
 .. code-block:: csharp
 
-  await ToSignal(timer, "timeout");
-  GD.Print("After timeout");
+  public async Task SomeFunction()
+  {
+      await ToSignal(timer, Timer.SignalName.Timeout);
+      GD.Print("After timeout");
+  }

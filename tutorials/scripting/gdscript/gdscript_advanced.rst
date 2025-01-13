@@ -38,7 +38,7 @@ While the main disadvantages are:
    statically typed languages only appear while running the code
    (because expression parsing is more strict).
 -  Less flexibility for code-completion (some variable types are only
-   known at run-time).
+   known at runtime).
 
 This, translated to reality, means that Godot used with GDScript is a combination
 designed to create games quickly and efficiently. For games that are very
@@ -230,11 +230,9 @@ Or unordered sets:
 Dictionaries
 ------------
 
-Dictionaries are a powerful tool in dynamically typed languages.
-Most programmers that come from statically typed languages (such as C++
-or C#) ignore their existence and make their life unnecessarily more
-difficult. This datatype is generally not present in such languages (or
-only in limited form).
+Dictionaries are a powerful tool in dynamically typed languages. In
+GDScript, untyped dictionaries can be used for many cases where a statically
+typed language would tend to use another data structure.
 
 Dictionaries can map any value to any other value with complete
 disregard for the datatype used as either key or value. Contrary to
@@ -322,23 +320,24 @@ Iterating using the C-style for loop in C-derived languages can be quite complex
 
 .. code-block:: cpp
 
-    const char* strings = new const char*[50];
+    const char** strings = new const char*[50];
 
     [..]
 
     for (int i = 0; i < 50; i++) {
-
-        printf("Value: %s\n", i, strings[i]);
+        printf("Value: %c Index: %d\n", strings[i], i);
     }
 
     // Even in STL:
+    std::list<std::string> strings;
 
-    for (std::list<std::string>::const_iterator it = strings.begin(); it != strings.end(); it++) {
+    [..]
 
+    for (std::string::const_iterator it = strings.begin(); it != strings.end(); it++) {
         std::cout << *it << std::endl;
     }
 
-Because of this, GDScript makes the opinonated decision to have a for-in loop over iterables instead:
+Because of this, GDScript makes the opinionated decision to have a for-in loop over iterables instead:
 
 ::
 
@@ -524,5 +523,4 @@ exists is desirable:
         if object.has_method("smash"):
             object.smash()
 
-Then, simply define that method and anything the rock touches can be
-smashed.
+Then, define that method and anything the rock touches can be smashed.

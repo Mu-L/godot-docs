@@ -29,14 +29,8 @@ To get useful profiling information, it is **absolutely required** to use a Godo
 build that includes debugging symbols. Official binaries do not include debugging
 symbols, since these would make the download size significantly larger.
 
-To get profiling data that best matches the production environment, you should
-compile binaries with the following SCons options:
-
-- For editor binaries: ``target=editor use_lto=yes``
-- For debug export templates: ``target=template_debug use_lto=yes``
-- For release export templates: ``target=template_release debug_symbols=yes``
-
-  - ``debug_symbols=yes`` is required as export templates are stripped from debugging symbols by default.
+To get profiling data that best matches the production environment (but with debugging symbols),
+you should compile binaries with the ``production=yes debug_symbols=yes`` SCons options.
 
 It is possible to run a profiler on less optimized builds (e.g. ``target=template_debug`` without LTO),
 but results will naturally be less representative of real world conditions.
@@ -65,7 +59,7 @@ Profiler-specific instructions
 ------------------------------
 
 VerySleepy
-^^^^^^^^^^
+~~~~~~~~~~
 
 - Start the Godot editor or your project first.
   If you start the Project Manager, make sure to edit or run a project first.
@@ -87,7 +81,7 @@ VerySleepy
 .. image:: img/cpp_profiler_verysleepy_results_filtered.png
 
 HotSpot
-^^^^^^^
+~~~~~~~
 
 - Open HotSpot. Click **Record Data**:
 
@@ -134,7 +128,7 @@ HotSpot
     This process attachment-based workflow is similar to the one used by VerySleepy.
 
 Xcode Instruments
-^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~
 
 - Open Xcode. Select **Open Developer Tool** - **Instruments** from the **Xcode** app menu:
 - Double-click on **Time Profiler** in the **Instruments** window:

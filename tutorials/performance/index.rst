@@ -1,4 +1,4 @@
-:article_outdated: True
+:allow_comments: False
 
 .. _doc_performance:
 
@@ -9,7 +9,7 @@ Introduction
 ------------
 
 Godot follows a balanced performance philosophy. In the performance world,
-there are always trade-offs, which consist of trading speed for usability
+there are always tradeoffs, which consist of trading speed for usability
 and flexibility. Some practical examples of this are:
 
 -  Rendering large amounts of objects efficiently is easy, but when a
@@ -69,6 +69,7 @@ GPU
 
    gpu_optimization
    using_multimesh
+   pipeline_compilations
 
 3D
 --

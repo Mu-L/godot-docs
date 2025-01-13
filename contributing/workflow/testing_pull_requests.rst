@@ -27,31 +27,30 @@ depending on whether you have a GitHub account or not.
     instead.
 
 If you have a GitHub account
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Open the pull request page. Click the **Checks** tab near the top of the page:
 
-.. image:: img/testing_pull_requests_access_checks.png
+.. image:: img/testing_pull_requests_access_checks.webp
 
-- In the list of platforms that appears on the left, select your platform by clicking
-  it then choose the type of build you need (editor or export template).
-  If in doubt, select an editor build:
+- Click the **Artifacts** dropdown on the right of the page:
 
-.. image:: img/testing_pull_requests_checks_platforms.png
+.. image:: img/testing_pull_requests_checks_artifacts.webp
 
-- Click the **Artifacts** dropdown on the right of the page then click the artifact's
-  name to download it:
+- In the dropdown, click the artifact's name to download it. Remember to scroll
+  if you cannot see the name of the platform you're looking for:
 
-.. image:: img/testing_pull_requests_checks_artifacts.png
+.. image:: img/testing_pull_requests_checks_artifacts_list.webp
 
 - Extract the ZIP archive then run the executable.
-  Note that Windows and macOS binaries are not code signed.
+  Note that Windows and macOS binaries are **not** code signed.
   This means you may have to bypass a security warning before you can run the executable.
-  If you frequently test pull request builds, it may be better to disable
-  Windows SmartScreen or `disable macOS Gatekeeper <https://disable-gatekeeper.github.io/>`__ permanently.
+  On Windows, if you frequently test pull request builds, it may be better to disable
+  Windows SmartScreen permanently in the Windows security settings.
+  On macOS, see :ref:`doc_running_on_macos` for instructions on bypassing Gatekeeper.
 
 If you don't have a GitHub account
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you don't have a GitHub account and can't sign up for one,
 you can use the third-party `nightly.link <https://nightly.link>`__ service
@@ -62,7 +61,7 @@ to generate a universal download link.
 .. image:: img/testing_pull_requests_access_fork.png
 
 - Now that you are on the fork's branch page, click the ``.github`` folder at the top of the file list.
-  Then, click on the ``workflows`` folder (whicb is inside the ``.github`` folder).
+  Then, click on the ``workflows`` folder (which is inside the ``.github`` folder).
   Click the workflow file for the platform you wish to download artifacts for.
   *After* clicking on the file (which opens the file view), copy the page URL from your browser's address bar.
 
@@ -91,6 +90,9 @@ This approach may be needed for pull requests that were last updated more than
 90 days ago, or to test on platforms and configurations that are not supported
 by Godot's GitHub Actions setup.
 
+Downloading a zipped pull request branch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - Open the pull request page. Click the *fork*'s branch name near the top of the page:
 
 .. image:: img/testing_pull_requests_access_fork.png
@@ -102,3 +104,34 @@ by Godot's GitHub Actions setup.
 
 - Extract the ZIP archive and follow the :ref:`compiling <toc-devel-compiling>` instructions
   for your operating system.
+
+Checking out a pull request branch with git
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Alternatively, you can checkout the pull request directly with git:
+
+- Open the pull request page. Note the pull request *number* (``PR_NUMBER``), and the *branch name*
+  (``BRANCH_NAME``), but without the user name.
+
+.. image:: img/testing_pull_requests_command_line_checkout.webp
+
+- Construct the command using this pattern:
+
+::
+
+    git fetch upstream pull/PR_NUMBER/head:BRANCH_NAME
+
+So for the pull request above, the actual command will be:
+
+::
+
+    # Fetch PR branch locally
+    git fetch upstream pull/48734/head:editor_file_dialog_filter_sort
+
+- Once the pull request finishes downloading, checkout its branch:
+
+::
+
+    git checkout editor_file_dialog_filter_sort
+
+- And follow the :ref:`compiling <toc-devel-compiling>` instructions for your operating system.

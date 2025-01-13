@@ -143,7 +143,7 @@ careful not to read from an index larger than the size of the buffer.
 
 Finally, we write the ``main`` function which is where all the logic happens. We
 access a position in the storage buffer using the ``gl_GlobalInvocationID``
-built in variables. ``gl_GlobalInvocationID`` gives you the global unique ID for
+built-in variables. ``gl_GlobalInvocationID`` gives you the global unique ID for
 the current invocation.
 
 To continue, write the code above into your newly created ``compute_example.glsl``
@@ -185,9 +185,13 @@ and create a precompiled version of it using this:
 
     // Load GLSL shader
     var shaderFile = GD.Load<RDShaderFile>("res://compute_example.glsl");
-    var shaderBytecode = shaderFile.GetSpirv();
-    var shader = rd.ShaderCreateFromSpirv(shaderBytecode);
+    var shaderBytecode = shaderFile.GetSpirV();
+    var shader = rd.ShaderCreateFromSpirV(shaderBytecode);
 
+.. warning::
+
+    Local RenderingDevices cannot be debugged using tools such as
+    `RenderDoc <https://renderdoc.org/>`__.
 
 Provide input data
 ------------------
@@ -216,7 +220,7 @@ So let's initialize an array of floats and create a storage buffer:
  .. code-tab:: csharp
 
     // Prepare our data. We use floats in the shader, so we need 32 bit.
-    var input = new float[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    float[] input = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     var inputBytes = new byte[input.Length * sizeof(float)];
     Buffer.BlockCopy(input, 0, inputBytes, 0, inputBytes.Length);
 
@@ -247,11 +251,12 @@ assign it to a uniform set which we can pass to our shader later.
         Binding = 0
     };
     uniform.AddId(buffer);
-    var uniformSet = rd.UniformSetCreate(new Array<RDUniform> { uniform }, shader, 0);
+    var uniformSet = rd.UniformSetCreate([uniform], shader, 0);
 
 
 Defining a compute pipeline
 ---------------------------
+
 The next step is to create a set of instructions our GPU can execute.
 We need a pipeline and a compute list for that.
 
@@ -321,6 +326,20 @@ example, we synchronize right away because we want our data available for readin
 right away. In general, you will want to wait *at least* 2 or 3 frames before
 synchronizing so that the GPU is able to run in parallel with the CPU.
 
+.. warning::
+
+    Long computations can cause Windows graphics drivers to "crash" due to
+    :abbr:`TDR (Timeout Detection and Recovery)` being triggered by Windows.
+    This is a mechanism that reinitializes the graphics driver after a certain
+    amount of time has passed without any activity from the graphics driver
+    (usually 5 to 10 seconds).
+
+    Depending on the duration your compute shader takes to execute, you may need
+    to split it into multiple dispatches to reduce the time each dispatch takes
+    and reduce the chances of triggering a TDR. Given TDR is time-dependent,
+    slower GPUs may be more prone to TDRs when running a given compute shader
+    compared to a faster GPU.
+
 Retrieving results
 ------------------
 
@@ -341,11 +360,11 @@ the data and print the results to our console.
  .. code-tab:: csharp
 
     // Read back the data from the buffers
-    var outputBytes = rd.BufferGetData(outputBuffer);
+    var outputBytes = rd.BufferGetData(buffer);
     var output = new float[input.Length];
     Buffer.BlockCopy(outputBytes, 0, output, 0, outputBytes.Length);
-    GD.Print("Input: ", input)
-    GD.Print("Output: ", output)
+    GD.Print("Input: ", string.Join(", ", input));
+    GD.Print("Output: ", string.Join(", ", output));
 
 With that, you have everything you need to get started working with compute
 shaders.

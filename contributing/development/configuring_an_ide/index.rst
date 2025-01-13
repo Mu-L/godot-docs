@@ -1,3 +1,5 @@
+:allow_comments: False
+
 .. _doc_configuring_an_ide:
 
 Configuring an IDE
@@ -19,6 +21,7 @@ Development Environment), here are setup instructions for some popular ones:
    code_blocks
    kdevelop
    qt_creator
+   rider
    visual_studio
    visual_studio_code
    xcode

@@ -33,12 +33,24 @@ Note that this repository has different branches for different versions
 of Godot. GDExtensions will not work in older versions of Godot (only Godot 4 and up) and vice versa, so make sure you download the correct branch.
 
 .. note::
-
     To use `GDExtension <https://godotengine.org/article/introducing-gd-extensions>`__
-    you need to use the ``4.0`` branch of godot-cpp,
-    which is only compatible with Godot 4.0 and being used here as an example.
-    The ``master`` branch is the development branch and is being updated
-    regularly to work with godot's ``master`` branch.
+    you need to use the godot-cpp branch that matches the version of Godot that you are
+    targeting. For example, if you're targeting Godot 4.1, use the ``4.1`` branch. Throughout
+    this tutorial we use ``4.x``, which will need to be replaced with the version of Godot you
+    are targeting.
+
+    The ``master`` branch is the development branch which is updated regularly
+    to work with Godot's ``master`` branch.
+
+.. warning::
+    Our long-term goal is that GDExtensions targeting an earlier version of Godot will work
+    in later minor versions, but not vice-versa. For example, a GDExtension targeting Godot 4.1
+    should work just fine in Godot 4.2, but one targeting Godot 4.2 won't work in Godot 4.1.
+
+    However, GDExtension is currently *experimental*, which means that we may break compatibility
+    in order to fix major bugs or include critical features. For example, GDExtensions created
+    for Godot 4.0 aren't compatible with Godot 4.1
+    (see :ref:`updating_your_gdextension_for_godot_4_1`).
 
 If you are versioning your project using Git, it is recommended to add it as
 a Git submodule:
@@ -48,7 +60,7 @@ a Git submodule:
     mkdir gdextension_cpp_example
     cd gdextension_cpp_example
     git init
-    git submodule add -b 4.0 https://github.com/godotengine/godot-cpp
+    git submodule add -b 4.x https://github.com/godotengine/godot-cpp
     cd godot-cpp
     git submodule update --init
 
@@ -58,7 +70,7 @@ Alternatively, you can also clone it to the project folder:
 
     mkdir gdextension_cpp_example
     cd gdextension_cpp_example
-    git clone -b master https://github.com/godotengine/godot-cpp
+    git clone -b 4.x https://github.com/godotengine/godot-cpp
 
 .. note::
 
@@ -84,27 +96,28 @@ Now that we've downloaded our prerequisites, it is time to build the C++
 bindings.
 
 The repository contains a copy of the metadata for the current Godot release,
-but if you need to build these bindings for a newer version of Godot, simply
-call the Godot executable:
+but if you need to build these bindings for a newer version of Godot, call
+the Godot executable:
 
 .. code-block:: none
 
-    godot --dump-extension-api extension_api.json
+    godot --dump-extension-api
 
-Place the resulting ``extension_api.json`` file in the project folder and add
-``custom_api_file=<PATH_TO_FILE>`` to the scons command
-below.
+The resulting ``extension_api.json`` file will be created in the executable's
+directory. Copy it to the project folder and add ``custom_api_file=<PATH_TO_FILE>``
+to the scons command below.
 
 To generate and compile the bindings, use this command (replacing ``<platform>``
 with ``windows``, ``linux`` or ``macos`` depending on your OS):
 
-To speed up compilation, add `-jN` at the end of the SCons command line where `N`
-is the number of CPU threads you have on your system. The example below uses 4 threads.
+The build process automatically detects the number of CPU threads to use for
+parallel builds. To specify a number of CPU threads to use, add ``-jN`` at the
+end of the SCons command line where ``N`` is the number of CPU threads to use.
 
 .. code-block:: none
 
     cd godot-cpp
-    scons platform=<platform> -j4 custom_api_file=<PATH_TO_FILE>
+    scons platform=<platform> custom_api_file=<PATH_TO_FILE>
     cd ..
 
 This step will take a while. When it is completed, you should have static
@@ -147,7 +160,8 @@ Your folder structure should now look like this:
 In the ``src`` folder, we'll start with creating our header file for the
 GDExtension node we'll be creating. We will name it ``gdexample.h``:
 
-.. code-block:: C++
+.. code-block:: cpp
+    :caption: gdextension_cpp_example/src/gdexample.h
 
     #ifndef GDEXAMPLE_H
     #define GDEXAMPLE_H
@@ -169,7 +183,7 @@ GDExtension node we'll be creating. We will name it ``gdexample.h``:
         GDExample();
         ~GDExample();
 
-        void _process(double delta);
+        void _process(double delta) override;
     };
 
     }
@@ -200,7 +214,8 @@ as the ``_process`` function you're used to in GDScript.
 
 Let's implement our functions by creating our ``gdexample.cpp`` file:
 
-.. code-block:: C++
+.. code-block:: cpp
+    :caption: gdextension_cpp_example/src/gdexample.cpp
 
     #include "gdexample.h"
     #include <godot_cpp/core/class_db.hpp>
@@ -239,7 +254,8 @@ and source file like we've implemented ``GDExample`` up above. What we need now
 is a small bit of code that tells Godot about all the classes in our
 GDExtension plugin.
 
-.. code-block:: C++
+.. code-block:: cpp
+    :caption: gdextension_cpp_example/src/register_types.cpp
 
     #include "register_types.h"
 
@@ -247,7 +263,6 @@ GDExtension plugin.
 
     #include <gdextension_interface.h>
     #include <godot_cpp/core/defs.hpp>
-    #include <godot_cpp/core/class_db.hpp>
     #include <godot_cpp/godot.hpp>
 
     using namespace godot;
@@ -257,7 +272,7 @@ GDExtension plugin.
             return;
         }
 
-        ClassDB::register_class<GDExample>();
+        GDREGISTER_CLASS(GDExample);
     }
 
     void uninitialize_example_module(ModuleInitializationLevel p_level) {
@@ -268,8 +283,8 @@ GDExtension plugin.
 
     extern "C" {
     // Initialization.
-    GDExtensionBool GDE_EXPORT example_library_init(const GDExtensionInterface *p_interface, const GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization) {
-        godot::GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_initialization);
+    GDExtensionBool GDE_EXPORT example_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address, const GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization) {
+        godot::GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library, r_initialization);
 
         init_obj.register_initializer(initialize_example_module);
         init_obj.register_terminator(uninitialize_example_module);
@@ -283,23 +298,28 @@ The ``initialize_example_module`` and ``uninitialize_example_module`` functions 
 called respectively when Godot loads our plugin and when it unloads it. All
 we're doing here is parse through the functions in our bindings module to
 initialize them, but you might have to set up more things depending on your
-needs. We call the function ``register_class`` for each of our classes in our library.
+needs. We call the ``GDREGISTER_CLASS`` macro for each of our classes in our library.
 
 The important function is the third function called ``example_library_init``.
-We first call a function in our bindings library that creates an initilization object.
-This object registrates the initialization and termination functions of the GDExtension.
-Furthermore, it sets the level of initilization (core, servers, scene, editor, level).
+We first call a function in our bindings library that creates an initialization object.
+This object registers the initialization and termination functions of the GDExtension.
+Furthermore, it sets the level of initialization (core, servers, scene, editor, level).
 
 At last, we need the header file for the ``register_types.cpp`` named
 ``register_types.h``.
 
-.. code-block:: C++
+.. code-block:: cpp
+    :caption: gdextension_cpp_example/src/register_types.h
 
     #ifndef GDEXAMPLE_REGISTER_TYPES_H
     #define GDEXAMPLE_REGISTER_TYPES_H
 
-    void initialize_example_module();
-    void uninitialize_example_module();
+    #include <godot_cpp/core/class_db.hpp>
+
+    using namespace godot;
+
+    void initialize_example_module(ModuleInitializationLevel p_level);
+    void uninitialize_example_module(ModuleInitializationLevel p_level);
 
     #endif // GDEXAMPLE_REGISTER_TYPES_H
 
@@ -317,7 +337,7 @@ build files in a subsequent tutorial.
 
     This ``SConstruct`` file was written to be used with the latest ``godot-cpp``
     master, you may need to make small changes using it with older versions or
-    refer to the ``SConstruct`` file in the Godot 4.0 documentation.
+    refer to the ``SConstruct`` file in the Godot 4.x documentation.
 
 Once you've downloaded the ``SConstruct`` file, place it in your GDExtension folder
 structure alongside ``godot-cpp``, ``src`` and ``demo``, then run:
@@ -327,6 +347,19 @@ structure alongside ``godot-cpp``, ``src`` and ``demo``, then run:
     scons platform=<platform>
 
 You should now be able to find the module in ``demo/bin/<platform>``.
+
+When building for iOS, package the module as a static `.xcframework`, you can use
+following commands to do so:
+
+::
+
+    # compile simulator and device modules
+    scons arch=universal ios_simulator=yes platform=ios target=<target>
+    scons arch=arm64 ios_simulator=no platform=ios target=<target>
+
+    # assemble xcframeworks
+    xcodebuild -create-xcframework -library demo/bin/libgdexample.ios.<target>.a -library demo/bin/libgdexample.ios.<target>.simulator.a -output demo/bin/libgdexample.ios.<target>.xcframework
+    xcodebuild -create-xcframework -library godot-cpp/bin/libgodot-cpp.ios.<target>.arm64.a -library godot-cpp/bin/libgodot-cpp.ios.<target>.universal.simulator.a  -output demo/bin/libgodot-cpp.ios.<target>.xcframework
 
 .. note::
 
@@ -348,14 +381,43 @@ loaded for each platform and the entry function for the module. It is called ``g
     [configuration]
 
     entry_symbol = "example_library_init"
+    compatibility_minimum = "4.1"
+    reloadable = true
 
     [libraries]
 
-    linux.64="res://bin/libgdexample.linux.64.so"
-    windows.x86_64="res://bin/libgdexample.windows.x86_64.dll"
-    macos="res://bin/libgdexample.macos.framework"
+    macos.debug = "res://bin/libgdexample.macos.template_debug.framework"
+    macos.release = "res://bin/libgdexample.macos.template_release.framework"
+    ios.debug = "res://bin/libgdexample.ios.template_debug.xcframework"
+    ios.release = "res://bin/libgdexample.ios.template_release.xcframework"
+    windows.debug.x86_32 = "res://bin/libgdexample.windows.template_debug.x86_32.dll"
+    windows.release.x86_32 = "res://bin/libgdexample.windows.template_release.x86_32.dll"
+    windows.debug.x86_64 = "res://bin/libgdexample.windows.template_debug.x86_64.dll"
+    windows.release.x86_64 = "res://bin/libgdexample.windows.template_release.x86_64.dll"
+    linux.debug.x86_64 = "res://bin/libgdexample.linux.template_debug.x86_64.so"
+    linux.release.x86_64 = "res://bin/libgdexample.linux.template_release.x86_64.so"
+    linux.debug.arm64 = "res://bin/libgdexample.linux.template_debug.arm64.so"
+    linux.release.arm64 = "res://bin/libgdexample.linux.template_release.arm64.so"
+    linux.debug.rv64 = "res://bin/libgdexample.linux.template_debug.rv64.so"
+    linux.release.rv64 = "res://bin/libgdexample.linux.template_release.rv64.so"
+    android.debug.x86_64 = "res://bin/libgdexample.android.template_debug.x86_64.so"
+    android.release.x86_64 = "res://bin/libgdexample.android.template_release.x86_64.so"
+    android.debug.arm64 = "res://bin/libgdexample.android.template_debug.arm64.so"
+    android.release.arm64 = "res://bin/libgdexample.android.template_release.arm64.so"
+
+    [dependencies]
+    ios.debug = {
+        "res://bin/libgodot-cpp.ios.template_debug.xcframework": ""
+    }
+    ios.release = {
+        "res://bin/libgodot-cpp.ios.template_release.xcframework": ""
+    }
 
 This file contains a ``configuration`` section that controls the entry function of the module.
+You should also set the minimum compatible Godot version with ``compatability_minimum``,
+which prevents older version of Godot from trying to load your extension.
+The ``reloadable`` flag enables automatic reloading of your extension by the editor every time you recompile it,
+without needing to restart the editor. This only works if you compile your extension in debug mode (default).
 
 The ``libraries`` section is the important bit: it tells Godot the location of the
 dynamic library in the project's filesystem for each supported platform. It will
@@ -412,14 +474,14 @@ GDScript allows you to add properties to your script using the ``export``
 keyword. In GDExtension you have to register the properties with a getter and
 setter function or directly implement the ``_get_property_list``, ``_get`` and
 ``_set`` methods of an object (but that goes far beyond the scope of this
-tutorial.
+tutorial).
 
 Lets add a property that allows us to control the amplitude of our wave.
 
 In our ``gdexample.h`` file we need to add a member variable and getter and setter
 functions:
 
-.. code-block:: C++
+.. code-block:: cpp
 
     ...
     private:
@@ -427,22 +489,23 @@ functions:
         double amplitude;
 
     public:
-        void set_amplitude(const double amplitude);
+        void set_amplitude(const double p_amplitude);
         double get_amplitude() const;
     ...
 
 In our ``gdexample.cpp`` file we need to make a number of changes, we will only
 show the methods we end up changing, don't remove the lines we're omitting:
 
-.. code-block:: C++
+.. code-block:: cpp
 
     void GDExample::_bind_methods() {
         ClassDB::bind_method(D_METHOD("get_amplitude"), &GDExample::get_amplitude);
         ClassDB::bind_method(D_METHOD("set_amplitude", "p_amplitude"), &GDExample::set_amplitude);
-        ClassDB::add_property("GDExample", PropertyInfo(Variant::FLOAT, "amplitude"), "set_amplitude", "get_amplitude");
+
+        ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "amplitude"), "set_amplitude", "get_amplitude");
     }
 
-    void GDExample::GDExample() {
+    GDExample::GDExample() {
         // Initialize any variables here.
         time_passed = 0.0;
         amplitude = 10.0;
@@ -476,30 +539,31 @@ Let's do the same but for the speed of our animation and use a setter and getter
 function. Our ``gdexample.h`` header file again only needs a few more lines of
 code:
 
-.. code-block:: C++
+.. code-block:: cpp
 
     ...
         double amplitude;
         double speed;
     ...
         void _process(double delta) override;
-        void set_speed(double p_speed);
-        double get_speed();
+        void set_speed(const double p_speed);
+        double get_speed() const;
     ...
 
 This requires a few more changes to our ``gdexample.cpp`` file, again we're only
 showing the methods that have changed so don't remove anything we're omitting:
 
-.. code-block:: C++
+.. code-block:: cpp
 
     void GDExample::_bind_methods() {
         ...
         ClassDB::bind_method(D_METHOD("get_speed"), &GDExample::get_speed);
         ClassDB::bind_method(D_METHOD("set_speed", "p_speed"), &GDExample::set_speed);
-        ClassDB::add_property("GDExample", PropertyInfo(Variant::FLOAT, "speed", PROPERTY_HINT_RANGE, "0,20,0.01"), "set_speed", "get_speed");
+
+        ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "speed", PROPERTY_HINT_RANGE, "0,20,0.01"), "set_speed", "get_speed");
     }
 
-    void GDExample::GDExample() {
+    GDExample::GDExample() {
         time_passed = 0.0;
         amplitude = 10.0;
         speed = 1.0;
@@ -518,7 +582,7 @@ showing the methods that have changed so don't remove anything we're omitting:
 
     ...
 
-    void GDExample::set_speed(double p_speed) {
+    void GDExample::set_speed(const double p_speed) {
         speed = p_speed;
     }
 
@@ -547,12 +611,23 @@ would need to showcase a far more complete example.
 
 This is the required syntax:
 
-.. code-block:: C++
+.. code-block:: cpp
 
-    some_other_node->connect("the_signal", this, "my_method");
+    some_other_node->connect("the_signal", Callable(this, "my_method"));
+
+To connect our signal ``the_signal`` from some other node with our method
+``my_method``, we need to provide the ``connect`` method with the name of the signal
+and a ``Callable``. The ``Callable`` holds information about an object on which a method
+can be called. In our case, it associates our current object instance ``this`` with the
+method ``my_method`` of the object. Then the ``connect`` method will add this to the
+observers of ``the_signal``. Whenever ``the_signal`` is now emitted, Godot knows which
+method of which object it needs to call.
 
 Note that you can only call ``my_method`` if you've previously registered it in
-your ``_bind_methods`` method.
+your ``_bind_methods`` method. Otherwise Godot will not know about the existence
+of ``my_method``.
+
+To learn more about ``Callable``, check out the class reference here: :ref:`Callable <class_Callable>`.
 
 Having your object sending out signals is more common. For our wobbling
 Godot icon, we'll do something silly just to show how it works. We're going to
@@ -560,7 +635,7 @@ emit a signal every time a second has passed and pass the new location along.
 
 In our ``gdexample.h`` header file, we need to define a new member ``time_emit``:
 
-.. code-block:: C++
+.. code-block:: cpp
 
     ...
         double time_passed;
@@ -575,22 +650,28 @@ constructor. We'll look at the other 2 needed changes one by one.
 In our ``_bind_methods`` method, we need to declare our signal. This is done
 as follows:
 
-.. code-block:: C++
+.. code-block:: cpp
 
     void GDExample::_bind_methods() {
         ...
-        ClassDB::add_property("GDExample", PropertyInfo(Variant::FLOAT, "speed", PROPERTY_HINT_RANGE, "0,20,0.01"), "set_speed", "get_speed");
+        ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "speed", PROPERTY_HINT_RANGE, "0,20,0.01"), "set_speed", "get_speed");
 
         ADD_SIGNAL(MethodInfo("position_changed", PropertyInfo(Variant::OBJECT, "node"), PropertyInfo(Variant::VECTOR2, "new_pos")));
     }
 
-Here, our ``ADD_SIGNAL`` macro can be a single call first taking the
-signals name, then having pairs of the type specifying the parameter name and
-the value of each parameter we'll send along with this signal.
+Here, our ``ADD_SIGNAL`` macro can be a single call with a ``MethodInfo`` argument.
+``MethodInfo``'s first parameter will be the signal's name, and its remaining parameters
+are ``PropertyInfo`` types which describe the essentials of each of the method's parameters.
+``PropertyInfo`` parameters are defined with the data type of the parameter, and then the name
+that the parameter will have by default.
+
+So here, we add a signal, with a ``MethodInfo`` which names the signal "position_changed". The
+``PropertyInfo`` parameters describe two essential arguments, one of type ``Object``, the other
+of type ``Vector2``, respectively named "node" and "new_pos".
 
 Next, we'll need to change our ``_process`` method:
 
-.. code-block:: C++
+.. code-block:: cpp
 
     void GDExample::_process(double delta) {
         time_passed += speed * delta;

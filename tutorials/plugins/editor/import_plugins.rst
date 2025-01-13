@@ -100,7 +100,7 @@ Let's begin to code our plugin, one method at time:
         return "demos.sillymaterial"
 
 The first method is the
-:ref:`_get_importer_name()<class_EditorImportPlugin_method__get_importer_name>`. This is a
+:ref:`_get_importer_name()<class_EditorImportPlugin_private_method__get_importer_name>`. This is a
 unique name for your plugin that is used by Godot to know which import was used
 in a certain file. When the files needs to be reimported, the editor will know
 which plugin to call.
@@ -110,7 +110,7 @@ which plugin to call.
     func _get_visible_name():
         return "Silly Material"
 
-The :ref:`_get_visible_name()<class_EditorImportPlugin_method__get_visible_name>` method is
+The :ref:`_get_visible_name()<class_EditorImportPlugin_private_method__get_visible_name>` method is
 responsible for returning the name of the type it imports and it will be shown to the
 user in the Import dock.
 
@@ -124,7 +124,7 @@ descriptive name for your plugin.
         return ["mtxt"]
 
 Godot's import system detects file types by their extension. In the
-:ref:`_get_recognized_extensions()<class_EditorImportPlugin_method__get_recognized_extensions>`
+:ref:`_get_recognized_extensions()<class_EditorImportPlugin_private_method__get_recognized_extensions>`
 method you return an array of strings to represent each extension that this
 plugin can understand. If an extension is recognized by more than one plugin,
 the user can select which one to use when importing the files.
@@ -195,18 +195,18 @@ plugin:
 
 ::
 
-    func get_preset_count():
+    func _get_preset_count():
         return Presets.size()
 
-The :ref:`_get_preset_count() <class_EditorImportPlugin_method__get_preset_count>` method
+The :ref:`_get_preset_count() <class_EditorImportPlugin_private_method__get_preset_count>` method
 returns the amount of presets that this plugins defines. We only have one preset
 now, but we can make this method future-proof by returning the size of our
 ``Presets`` enumeration.
 
 ::
 
-    func _get_preset_name(preset):
-        match preset:
+    func _get_preset_name(preset_index):
+        match preset_index:
             Presets.DEFAULT:
                 return "Default"
             _:
@@ -214,7 +214,7 @@ now, but we can make this method future-proof by returning the size of our
 
 
 Here we have the
-:ref:`_get_preset_name() <class_EditorImportPlugin_method__get_preset_name>` method, which
+:ref:`_get_preset_name() <class_EditorImportPlugin_private_method__get_preset_name>` method, which
 gives names to the presets as they will be presented to the user, so be sure to
 use short and clear names.
 
@@ -228,8 +228,8 @@ you do this you have to be careful when you add more presets.
 
 ::
 
-    func _get_import_options(preset):
-        match preset:
+    func _get_import_options(path, preset_index):
+        match preset_index:
             Presets.DEFAULT:
                 return [{
                            "name": "use_red_anyway",
@@ -239,7 +239,7 @@ you do this you have to be careful when you add more presets.
                 return []
 
 This is the method which defines the available options.
-:ref:`_get_import_options() <class_EditorImportPlugin_method__get_import_options>` returns
+:ref:`_get_import_options() <class_EditorImportPlugin_private_method__get_import_options>` returns
 an array of dictionaries, and each dictionary contains a few keys that are
 checked to customize the option as its shown to the user. The following table
 shows the possible keys:
@@ -260,24 +260,24 @@ shows the possible keys:
 
 The ``name`` and ``default_value`` keys are **mandatory**, the rest are optional.
 
-Note that the ``get_import_options`` method receives the preset number, so you
+Note that the ``_get_import_options`` method receives the preset number, so you
 can configure the options for each different preset (especially the default
 value). In this example we use the ``match`` statement, but if you have lots of
 options and the presets only change the value you may want to create the array
 of options first and then change it based on the preset.
 
-.. warning:: The ``get_import_options`` method is called even if you don't
-             define presets (by making ``get_preset_count`` return zero). You
+.. warning:: The ``_get_import_options`` method is called even if you don't
+             define presets (by making ``_get_preset_count`` return zero). You
              have to return an array even it's empty, otherwise you can get
              errors.
 
 ::
 
-    func _get_option_visibility(option, options):
+    func _get_option_visibility(path, option_name, options):
         return true
 
 For the
-:ref:`_get_option_visibility() <class_EditorImportPlugin_method__get_option_visibility>`
+:ref:`_get_option_visibility() <class_EditorImportPlugin_private_method__get_option_visibility>`
 method, we simply return ``true`` because all of our options (i.e. the single
 one we defined) are visible all the time.
 
@@ -288,7 +288,7 @@ The ``import`` method
 ---------------------
 
 The heavy part of the process, responsible for converting the files into
-resources, is covered by the :ref:`_import() <class_EditorImportPlugin_method__import>`
+resources, is covered by the :ref:`_import() <class_EditorImportPlugin_private_method__import>`
 method. Our sample code is a bit long, so let's split in a few parts:
 
 ::
@@ -299,8 +299,6 @@ method. Our sample code is a bit long, so let's split in a few parts:
             return FileAccess.get_open_error()
 
         var line = file.get_line()
-
-        file.close()
 
 The first part of our import method opens and reads the source file. We use the
 :ref:`FileAccess <class_FileAccess>` class to do that, passing the ``source_file``
@@ -340,13 +338,13 @@ as the value we got before.
 
 ::
 
-    return ResourceSaver.save(material, "%s.%s" % [save_path, get_save_extension()])
+    return ResourceSaver.save(material, "%s.%s" % [save_path, _get_save_extension()])
 
 This is the last part and quite an important one, because here we save the made
 resource to the disk. The path of the saved file is generated and informed by
 the editor via the ``save_path`` parameter. Note that this comes **without** the
 extension, so we add it using :ref:`string formatting <doc_gdscript_printf>`. For
-this we call the ``get_save_extension`` method that we defined earlier, so we
+this we call the ``_get_save_extension`` method that we defined earlier, so we
 can be sure that they won't get out of sync.
 
 We also return the result from the
@@ -376,7 +374,7 @@ would need to do something like the following:
 ::
 
     r_platform_variants.push_back("mobile")
-    return ResourceSaver.save(mobile_material, "%s.%s.%s" % [save_path, "mobile", get_save_extension()])
+    return ResourceSaver.save(mobile_material, "%s.%s.%s" % [save_path, "mobile", _get_save_extension()])
 
 The ``r_gen_files`` argument is meant for extra files that are generated during
 your import process and need to be kept. The editor will look at it to
@@ -391,7 +389,7 @@ in a different file:
 
     var next_pass = StandardMaterial3D.new()
     next_pass.albedo_color = color.inverted()
-    var next_pass_path = "%s.next_pass.%s" % [save_path, get_save_extension()]
+    var next_pass_path = "%s.next_pass.%s" % [save_path, _get_save_extension()]
 
     err = ResourceSaver.save(next_pass, next_pass_path)
     if err != OK:

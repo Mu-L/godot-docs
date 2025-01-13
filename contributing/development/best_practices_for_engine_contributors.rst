@@ -167,7 +167,7 @@ who design software) to actually understand all future user needs. Trying to
 write very flexible structures that cater to many use cases at once is often a
 mistake.
 
-We may come up with something we believe is brilliant but later find out that
+We may come up with something we believe is brilliant, but later find out that
 users will never even use half of it or that they require features that don't
 quite fit into our original design, forcing us to either throw it away
 or make it even more complex.
@@ -179,7 +179,7 @@ they'll need to do* in the future?
 .. image:: img/best_practices6.png
 
 The answer to this question is that, to ensure users still can do what they want
-to do, we need to give them access to a *low level API* that they can use to
+to do, we need to give them access to a *low-level API* that they can use to
 achieve what they want, even if it's more work for them because it means
 reimplementing some logic that already exists.
 
@@ -219,7 +219,7 @@ is always the advised one.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Not every problem has a simple solution and, many times, the right choice is to
-use a third party library to solve the problem.
+use a third-party library to solve the problem.
 
 As Godot requires to be shipped in a large amount of platforms, we can't
 link libraries dynamically. Instead, we bundle them in our source tree.
@@ -227,14 +227,16 @@ link libraries dynamically. Instead, we bundle them in our source tree.
 .. image:: img/best_practices8.png
 
 As a result, we are very picky with what goes in, and we tend to prefer smaller
-libraries (in fact, single header ones are our favorite). Only in cases where
-there is no other choice we end up bundling something larger.
+libraries (single header ones are our favorite). We will only bundle something
+larger if there is no other choice.
 
-Also, libraries must use a permissive enough license to be included into Godot.
+.. _doc_best_practices_for_engine_contributors_license_compliance:
+
+Libraries must use a permissive enough license to be included into Godot.
 Some examples of acceptable licenses are Apache 2.0, BSD, MIT, ISC, and MPL 2.0.
 In particular, we cannot accept libraries licensed under the GPL or LGPL since
 these licenses effectively disallow static linking in proprietary software
 (which Godot is distributed as in most exported projects). This requirement also
 applies to the editor, since we may want to run it on iOS in the long term.
-Since iOS doesn't support dynamic linking, static linking the only option on
+Since iOS doesn't support dynamic linking, static linking is the only option on
 that platform.

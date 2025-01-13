@@ -60,8 +60,8 @@ You can create an Autoload to load a scene or a script that inherits from
 
 .. image:: img/singleton.webp
 
-To autoload a scene or script, select **Project > Project Settings** from the
-menu and switch to the **Autoload** tab.
+To autoload a scene or script, start from the menu and navigate to
+**Project > Project Settings > Globals > Autoload**.
 
 .. image:: img/autoload_tab.webp
 
@@ -73,31 +73,40 @@ in top-to-bottom order.
 
 .. image:: img/autoload_example.webp
 
-This means that any node can access a singleton named "PlayerVariables" with:
-
-.. tabs::
- .. code-tab:: gdscript GDScript
-
-   var player_vars = get_node("/root/PlayerVariables")
-   player_vars.health -= 10
-
- .. code-tab:: csharp
-
-    var playerVariables = GetNode<PlayerVariables>("/root/PlayerVariables");
-    playerVariables.Health -= 10; // Instance field.
-
 If the **Enable** column is checked (which is the default), then the singleton can
-be accessed directly without requiring ``get_node()``:
+be accessed directly in GDScript:
 
 .. tabs::
  .. code-tab:: gdscript GDScript
 
    PlayerVariables.health -= 10
 
+The **Enable** column has no effect in C# code. However, if the singleton is a
+C# script, a similar effect can be achieved by including a static property
+called ``Instance`` and assigning it in ``_Ready()``:
+
+.. tabs::
  .. code-tab:: csharp
 
-    // Static members can be accessed by using the class name.
-    PlayerVariables.Health -= 10;
+    public partial class PlayerVariables : Node
+    {
+        public static PlayerVariables Instance { get; private set; }
+
+        public int Health { get; set; }
+
+        public override void _Ready()
+        {
+            Instance = this;
+        }
+    }
+
+This allows the singleton to be accessed from C# code without ``GetNode()`` and
+without a typecast:
+
+.. tabs::
+ .. code-tab:: csharp
+
+    PlayerVariables.Instance.Health -= 10;
 
 Note that autoload objects (scripts and/or scenes) are accessed just like any
 other node in the scene tree. In fact, if you look at the running scene tree,
@@ -120,12 +129,16 @@ method (see :ref:`doc_scene_tree` for details). However, if you need more
 complex behavior when changing scenes, this method provides more functionality.
 
 To begin, download the template from here:
-:download:`autoload.zip <files/autoload.zip>` and open it in Godot.
+`singleton_autoload_starter.zip <https://github.com/godotengine/godot-docs-project-starters/releases/download/latest-4.x/singleton_autoload_starter.zip>`_
+and open it in Godot.
 
-The project contains two scenes: ``Scene1.tscn`` and ``Scene2.tscn``. Each
+A window notifying you that the project was last opened in an older Godot version
+may appear, that's not an issue. Click *Ok* to open the project.
+
+The project contains two scenes: ``scene_1.tscn`` and ``scene_2.tscn``. Each
 scene contains a label displaying the scene name and a button with its
 ``pressed()`` signal connected. When you run the project, it starts in
-``Scene1.tscn``. However, pressing the button does nothing.
+``scene_1.tscn``. However, pressing the button does nothing.
 
 Creating the script
 ~~~~~~~~~~~~~~~~~~~~~
@@ -135,10 +148,13 @@ Make sure it inherits from ``Node``:
 
 .. image:: img/autoload_script.webp
 
-The next step is to add this script to the autoLoad list. Open
-**Project > Project Settings** from the menu, switch to the **Autoload** tab and
+The next step is to add this script to the autoLoad list.
+Starting from the menu, open
+**Project > Project Settings > Globals > Autoload** and
 select the script by clicking the browse button or typing its path:
-``res://global.gd``. Press **Add** to add it to the autoload list:
+``res://global.gd``. Press **Add** to add it to the autoload list
+and name it "Global", which is required for scripts to access it
+by the name "Global":
 
 .. image:: img/autoload_tutorial1.webp
 
@@ -158,7 +174,8 @@ means that the last child of root is always the loaded scene.
 
     func _ready():
         var root = get_tree().root
-        current_scene = root.get_child(root.get_child_count() - 1)
+        # Using a negative index counts from the end, so this gets the last child node of `root`.
+        current_scene = root.get_child(-1)
 
  .. code-tab:: csharp
 
@@ -171,7 +188,8 @@ means that the last child of root is always the loaded scene.
         public override void _Ready()
         {
             Viewport root = GetTree().Root;
-            CurrentScene = root.GetChild(root.GetChildCount() - 1);
+            // Using a negative index counts from the end, so this gets the last child node of `root`.
+            CurrentScene = root.GetChild(-1);
         }
     }
 
@@ -191,11 +209,11 @@ current scene and replace it with the requested one.
         # The solution is to defer the load to a later time, when
         # we can be sure that no code from the current scene is running:
 
-        call_deferred("_deferred_goto_scene", path)
+        _deferred_goto_scene.call_deferred(path)
 
 
     func _deferred_goto_scene(path):
-        # It is now safe to remove the current scene
+        # It is now safe to remove the current scene.
         current_scene.free()
 
         # Load the new scene.
@@ -223,16 +241,16 @@ current scene and replace it with the requested one.
         // The solution is to defer the load to a later time, when
         // we can be sure that no code from the current scene is running:
 
-        CallDeferred(nameof(DeferredGotoScene), path);
+        CallDeferred(MethodName.DeferredGotoScene, path);
     }
 
     public void DeferredGotoScene(string path)
     {
-        // It is now safe to remove the current scene
+        // It is now safe to remove the current scene.
         CurrentScene.Free();
 
         // Load a new scene.
-        var nextScene = (PackedScene)GD.Load(path);
+        var nextScene = GD.Load<PackedScene>(path);
 
         // Instance the new scene.
         CurrentScene = nextScene.Instantiate();
@@ -254,16 +272,16 @@ Finally, we need to fill the empty callback functions in the two scenes:
 .. tabs::
  .. code-tab:: gdscript GDScript
 
-    # Add to 'Scene1.gd'.
+    # Add to 'scene_1.gd'.
 
-    func _on_Button_pressed():
-        Global.goto_scene("res://Scene2.tscn")
+    func _on_button_pressed():
+        Global.goto_scene("res://scene_2.tscn")
 
  .. code-tab:: csharp
 
     // Add to 'Scene1.cs'.
 
-    public void OnButtonPressed()
+    private void OnButtonPressed()
     {
         var global = GetNode<Global>("/root/Global");
         global.GotoScene("res://Scene2.tscn");
@@ -274,16 +292,16 @@ and
 .. tabs::
  .. code-tab:: gdscript GDScript
 
-    # Add to 'Scene2.gd'.
+    # Add to 'scene_2.gd'.
 
-    func _on_Button_pressed():
-        Global.goto_scene("res://Scene1.tscn")
+    func _on_button_pressed():
+        Global.goto_scene("res://scene_1.tscn")
 
  .. code-tab:: csharp
 
     // Add to 'Scene2.cs'.
 
-    public void OnButtonPressed()
+    private void OnButtonPressed()
     {
         var global = GetNode<Global>("/root/Global");
         global.GotoScene("res://Scene1.tscn");

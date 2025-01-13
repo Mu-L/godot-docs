@@ -5,8 +5,8 @@ Volumetric fog and fog volumes
 
 .. note::
 
-    Volumetric fog is only supported in the Clustered Forward rendering backend,
-    not Forward Mobile or Compatibility.
+    Volumetric fog is only supported in the Forward+ renderer, not the Mobile or
+    Compatibility renderers.
 
 As described in :ref:`doc_environment_and_post_processing`, Godot supports
 various visual effects including two types of fog: traditional (non-volumetric)
@@ -142,18 +142,24 @@ and quality:
   for better performance.
 - **Rendering > Environment > Volumetric Fog > Volume Depth:** Number of slices
   to use along the depth of the froxel buffer for volumetric fog. A lower number
-  will be more efficient but may result in artifacts appearing during camera
+  will be more efficient, but may result in artifacts appearing during camera
   movement.
 - **Rendering > Environment > Volumetric Fog > Use Filter:** Enables filtering
   of the volumetric fog effect prior to integration. This substantially blurs
-  the fog which reduces fine details but also smooths out harsh edges and
+  the fog which reduces fine details, but also smooths out harsh edges and
   aliasing artifacts. Disable when more detail is required.
+
+.. note::
+
+    Volumetric fog can cause banding to appear on the viewport, especially at
+    higher density levels. See :ref:`doc_3d_rendering_limitations_color_banding`
+    for guidance on reducing banding.
 
 Using fog volumes for local volumetric fog
 ------------------------------------------
 
 Sometimes, you want fog to be constrained to specific areas. Conversely, you may
-want to have global volumetric fog but fog should be excluded from certain
+want to have global volumetric fog, but fog should be excluded from certain
 areas. Both approaches can be followed using FogVolume nodes.
 
 Here's a quick start guide to using FogVolumes:
@@ -217,9 +223,86 @@ the following properties in FogMaterial:
   You can import any image as a 3D texture by
   :ref:`changing its import type in the Import dock <doc_importing_images_changing_import_type>`.
 
+Using 3D noise density textures
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Since Godot 4.1, there is a NoiseTexture3D resource that can be used to
+procedurally generate 3D noise. This is well-suited to FogMaterial density
+textures, which can result in more detailed fog effects:
+
+.. figure:: img/volumetric_fog_fog_material_density_texture.webp
+   :alt: FogMaterial comparison (without and with density texture)
+
+   Screenshot taken with **Volume Size** project setting set to 192 to make
+   high-frequency detail more visible in the fog.
+
+To do so, select the **Density Texture** property and choose **New NoiseTexture3D**.
+Edit this NoiseTexture3D by clicking it, then click **Noise** at the bottom of the
+NoiseTexture3D properties and choose **New FastNoiseLite**. Adjust the noise texture's
+width, height and depth according to your fog volume's dimensions.
+
+To improve performance, it's recommended to use low texture sizes (64×64×64 or lower),
+as high-frequency detail is difficult to notice in a FogVolume. If you wish to represent
+more detailed density variations, you will need to increase
+**Rendering > Environment > Volumetric Fog > Volume Size** in the project settings,
+which has a performance cost.
+
+.. note::
+
+    NoiseTexture3D's **Color Ramp** affects FogMaterial density textures, but
+    since only the texture's red channel is sampled, only the color ramp's red
+    channel will affect the resulting density.
+
+    However, using a color ramp will *not* tint the fog volume according to the
+    texture. You would need to use a custom shader that reads a Texture3D to
+    achieve this.
+
 Custom FogVolume shaders
 ------------------------
 
 This page only covers the built-in settings offered by FogMaterial. If you need
 to customize fog behavior within a FogVolume node (such as creating animated fog),
 FogVolume nodes' appearance can be customized using :ref:`doc_fog_shader`.
+
+Faking volumetric fog using quads
+---------------------------------
+
+In some cases, it may be better to use specially configured QuadMeshes as an
+alternative to volumetric fog:
+
+- Quads work with any rendering method, including Mobile and Compatibility.
+- Quads do not require temporal reprojection to look smooth, which makes
+  them suited to fast-moving dynamic effects such as lasers. They can also
+  represent small details which volumetric fog cannot do efficiently.
+- Quads generally have a lower performance cost than volumetric fog.
+
+This approach has a few downsides though:
+
+- The fog effect has less realistic falloff, especially if the camera enters the fog.
+- Transparency sorting issues may occur when sprites overlap.
+- Performance will not necessarily be better than volumetric fog if there are
+  lots of sprites close to the camera.
+
+To create a QuadMesh-based fog sprite:
+
+1. Create a MeshInstance3D node with a QuadMesh resource in the **Mesh**
+   property. Set the size as desired.
+2. Create a new StandardMaterial3D in the mesh's **Material** property.
+3. In the StandardMaterial3D, set **Shading > Shading Mode** to **Unshaded**,
+   **Billboard > Mode** to **Enabled**, enable **Proximity Fade** and set
+   **Distance Fade** to **Pixel Alpha**.
+4. Set the **Albedo > Texture** to the texture below (right-click and choose **Save as…**):
+
+   .. image:: img/volumetric_fog_quad_mesh_texture.webp
+
+5. *After* setting the albedo texture, go to the Import dock, select the texture
+   and change its compression mode to **Lossless** to improve quality.
+
+The fog's color is set using the **Albedo > Color** property; its density is set
+using the color's alpha channel. For best results, you will have to adjust
+**Proximity Fade > Distance** and **Distance Fade > Max Distance** depending on
+the size of your QuadMesh.
+
+Optionally, billboarding may be left disabled if you place the quad in a way
+where all of its corners are in solid geometry. This can be useful for fogging
+large planes that the camera cannot enter, such as bottomless pits.

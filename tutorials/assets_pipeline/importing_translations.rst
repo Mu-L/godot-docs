@@ -44,15 +44,6 @@ editors can export to this format, so the only requirement is that the files
 have a special arrangement. The CSV files **must** be saved with UTF-8 encoding
 without a `byte order mark <https://en.wikipedia.org/wiki/Byte_order_mark>`__.
 
-.. warning::
-
-    By default, Microsoft Excel will always save CSV files with ANSI encoding
-    rather than UTF-8. There is no built-in way to save as UTF-8, but there are
-    workarounds as described
-    `here <https://stackoverflow.com/questions/4221176/excel-to-csv-with-utf8-encoding>`__.
-
-    We recommend using `LibreOffice <https://www.libreoffice.org/>`__ or Google Sheets instead.
-
 CSV files must be formatted as follows:
 
 +--------+----------+----------+----------+
@@ -66,8 +57,9 @@ CSV files must be formatted as follows:
 +--------+----------+----------+----------+
 
 The "lang" tags must represent a language, which must be one of the :ref:`valid
-locales <doc_locales>` supported by the engine. The "KEY" tags must be
-unique and represent a string universally (they are usually in
+locales <doc_locales>` supported by the engine, or they must start with an underscore (`_`), 
+which means the related column is served as comment and won't be imported. 
+The "KEY" tags must be unique and represent a string universally (they are usually in
 uppercase, to differentiate from other strings). These keys will be replaced at
 runtime by the matching translated string. Note that the case is important,
 "KEY1" and "Key1" will be different keys.
@@ -119,6 +111,6 @@ Select the ``.csv`` file and access the **Import** dock to define import
 options. You can toggle the compression of the imported translations, and
 select the delimiter to use when parsing the CSV file.
 
-.. image:: img/import_csv.png
+.. image:: img/import_csv.webp
 
 Be sure to click **Reimport** after any change to these options.

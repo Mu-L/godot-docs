@@ -103,7 +103,7 @@ languages, including Squirrel, Lua, and Python.
 As Microsoft's `C#
 <https://en.wikipedia.org/wiki/C_Sharp_(programming_language)>`_ is a favorite
 amongst game developers, we officially support it. C# is a mature and flexible
-language with tons of libraries written for it. We could add support for it
+language with tons of libraries written for it. We were able to add support for it
 thanks to a generous donation from Microsoft.
 
 .. image:: img/scripting_csharp.png
@@ -115,7 +115,7 @@ should be aware of its garbage collector.
           can download it on the Godot website's `download
           <https://godotengine.org/download/>`_ page.
 
-Since Godot uses .NET 6, in theory, you can use any third-party .NET library or
+Since Godot uses .NET 8, in theory, you can use any third-party .NET library or
 framework in Godot, as well as any Common Language Infrastructure-compliant
 programming language, such as F#, Boo, or ClojureCLR. However, C# is the only
 officially supported .NET option.
@@ -125,6 +125,15 @@ officially supported .NET option.
           in C++ code inside the engine. In many cases, writing gameplay logic
           in GDScript, C#, or C++ won't have a significant impact on
           performance.
+
+.. attention::
+
+    Projects written in C# using Godot 4 currently cannot be exported to the web
+    platform. To use C# on that platform, consider Godot 3 instead.
+    Android and iOS platform support is available as of Godot 4.2, but is
+    experimental and :ref:`some limitations apply <doc_c_sharp_platforms>`.
+
+.. seealso:: To learn more about C#, head to the :ref:`C# basics <doc_c_sharp>` page.
 
 C++ via GDExtension
 ~~~~~~~~~~~~~~~~~~~

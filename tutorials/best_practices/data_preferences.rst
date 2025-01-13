@@ -10,33 +10,33 @@ Y or Z? This article covers a variety of topics related to these dilemmas.
 
 .. note::
 
-  This article makes references to "[something]-time" operations. This
-  terminology comes from algorithm analysis'
-  `Big O Notation <https://rob-bell.net/2009/06/a-beginners-guide-to-big-o-notation/>`_.
+    This article makes references to "[something]-time" operations. This
+    terminology comes from algorithm analysis'
+    `Big O Notation <https://rob-bell.net/2009/06/a-beginners-guide-to-big-o-notation/>`_.
 
-  Long-story short, it describes the worst-case scenario of runtime length.
-  In laymen's terms:
+    Long-story short, it describes the worst-case scenario of runtime length.
+    In laymen's terms:
 
-  "As the size of a problem domain increases, the runtime length of the
-  algorithm..."
+    "As the size of a problem domain increases, the runtime length of the
+    algorithm..."
 
-  - Constant-time, ``O(1)``: "...does not increase."
-  - Logarithmic-time, ``O(log n)``: "...increases at a slow rate."
-  - Linear-time, ``O(n)``: "...increases at the same rate."
-  - Etc.
+    - Constant-time, ``O(1)``: "...does not increase."
+    - Logarithmic-time, ``O(log n)``: "...increases at a slow rate."
+    - Linear-time, ``O(n)``: "...increases at the same rate."
+    - Etc.
 
-  Imagine if one had to process 3 million data points within a single frame. It
-  would be impossible to craft the feature with a linear-time algorithm since
-  the sheer size of the data would increase the runtime far beyond the time allotted.
-  In comparison, using a constant-time algorithm could handle the operation without
-  issue.
+    Imagine if one had to process 3 million data points within a single frame. It
+    would be impossible to craft the feature with a linear-time algorithm since
+    the sheer size of the data would increase the runtime far beyond the time allotted.
+    In comparison, using a constant-time algorithm could handle the operation without
+    issue.
 
-  By and large, developers want to avoid engaging in linear-time operations as
-  much as possible. But, if one keeps the scale of a linear-time operation
-  small, and if one does not need to perform the operation often, then it may
-  be acceptable. Balancing these requirements and choosing the right
-  algorithm / data structure for the job is part of what makes programmers'
-  skills valuable.
+    By and large, developers want to avoid engaging in linear-time operations as
+    much as possible. But, if one keeps the scale of a linear-time operation
+    small, and if one does not need to perform the operation often, then it may
+    be acceptable. Balancing these requirements and choosing the right
+    algorithm / data structure for the job is part of what makes programmers'
+    skills valuable.
 
 Array vs. Dictionary vs. Object
 -------------------------------
@@ -52,12 +52,13 @@ contents in a contiguous section of memory, i.e. they are in a row adjacent
 to each other.
 
 .. note::
-  For those unfamiliar with C++, a Vector is the name of the
-  array object in traditional C++ libraries. It is a "templated"
-  type, meaning that its records can only contain a particular type (denoted
-  by angled brackets). So, for example, a
-  :ref:`PackedStringArray <class_PackedStringArray>` would be something like
-  a ``Vector<String>``.
+
+    For those unfamiliar with C++, a Vector is the name of the
+    array object in traditional C++ libraries. It is a "templated"
+    type, meaning that its records can only contain a particular type (denoted
+    by angled brackets). So, for example, a
+    :ref:`PackedStringArray <class_PackedStringArray>` would be something like
+    a ``Vector<String>``.
 
 Contiguous memory stores imply the following operation performance:
 
@@ -128,7 +129,7 @@ the expense of memory and some minor operational efficiency.
 
     - HashMaps maintain gaps of unused memory interspersed in the table
       on purpose to reduce hash collisions and maintain the speed of
-      accesses. This is why it constantly increases in size quadratically by
+      accesses. This is why it constantly increases in size exponentially by
       powers of 2.
 
 As one might be able to tell, Dictionaries specialize in tasks that Arrays
@@ -239,7 +240,7 @@ tree structures.
     class_name TreeNode
 
     var _parent: TreeNode = null
-    var _children: = [] setget
+    var _children := []
 
     func _notification(p_what):
         match p_what:
@@ -258,7 +259,7 @@ tree structures.
     {
         private TreeNode _parent = null;
 
-        private List<TreeNode> _children = new();
+        private List<TreeNode> _children = [];
 
         public override void _Notification(int what)
         {
@@ -282,7 +283,7 @@ Enumerations: int vs. string
 
 Most languages offer an enumeration type option. GDScript is no different, but
 unlike most other languages, it allows one to use either integers or strings for
-the enum values (the latter only when using the ``export`` keyword in GDScript).
+the enum values (the latter only when using the ``@export_enum`` annotation in GDScript).
 The question then arises, "which should one use?"
 
 The short answer is, "whichever you are more comfortable with." This
@@ -294,7 +295,7 @@ faster than string comparisons (linear-time). If one wants to keep
 up other languages' conventions though, then one should use integers.
 
 The primary issue with using integers comes up when one wants to *print*
-an enum value. As integers, attempting to print MY_ENUM will print
+an enum value. As integers, attempting to print ``MY_ENUM`` will print
 ``5`` or what-have-you, rather than something like ``"MyEnum"``. To
 print an integer enum, one would have to write a Dictionary that maps the
 corresponding string value for each enum.
@@ -314,7 +315,7 @@ The answer may not be immediately clear to new Godot users.
 the engine draws as an animated loop rather than a static image.
 Users can manipulate...
 
-1. the rate at which it moves across each section of the texture (fps).
+1. the rate at which it moves across each section of the texture (FPS).
 
 2. the number of regions contained within the texture (frames).
 
@@ -328,25 +329,25 @@ the other :ref:`Node <class_Node>` objects discussed here. One might create
 a :ref:`Sprite2D <class_Sprite2D>` node that uses AnimatedTexture as its texture.
 Or (something the others can't do) one could add AnimatedTextures as tiles
 in a :ref:`TileSet <class_TileSet>` and integrate it with a
-:ref:`TileMap <class_TileMap>` for many auto-animating backgrounds that
+:ref:`TileMapLayer <class_TileMapLayer>` for many auto-animating backgrounds that
 all render in a single batched draw call.
 
-The AnimatedSprite2D node, in combination with the
+The :ref:`AnimatedSprite2D <class_AnimatedSprite2D>` node, in combination with the
 :ref:`SpriteFrames <class_SpriteFrames>` resource, allows one to create a
 variety of animation sequences through spritesheets, flip between animations,
 and control their speed, regional offset, and orientation. This makes them
 well-suited to controlling 2D frame-based animations.
 
-If one needs trigger other effects in relation to animation changes (for
+If one needs to trigger other effects in relation to animation changes (for
 example, create particle effects, call functions, or manipulate other
-peripheral elements besides the frame-based animation), then will need to use
+peripheral elements besides the frame-based animation), then one will need to use
 an :ref:`AnimationPlayer <class_AnimationPlayer>` node in conjunction with
 the AnimatedSprite2D.
 
 AnimationPlayers are also the tool one will need to use if they wish to design
 more complex 2D animation systems, such as...
 
-1. **Cut-Out animations:** editing sprites' transforms at runtime.
+1. **Cut-out animations:** editing sprites' transforms at runtime.
 
 2. **2D Mesh animations:** defining a region for the sprite's texture and
    rigging a skeleton to it. Then one animates the bones which

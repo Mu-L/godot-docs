@@ -10,7 +10,7 @@ documentation as a PDF, EPUB, or LaTeX file, for example.
 Before you get started, make sure that you have:
 
 - `Git <https://git-scm.com/>`_
-- `make <https://www.gnu.org/software/make/>`_ (unless you’re using Windows)
+- `make <https://www.gnu.org/software/make/>`_ (unless you're using Windows)
 - `Python <https://www.python.org/>`_ 3
 
 .. note:: Python 3 should come with the ``pip3`` command. You may need to write
@@ -120,7 +120,7 @@ If you run into errors, you may try the following command:
 
 If you get a ``MemoryError`` or ``EOFError``, you can remove the ``classes/`` folder and
 run ``make`` again.
-This will drop the class references from the final HTML documentation but will keep the
+This will drop the class references from the final HTML documentation, but will keep the
 rest intact.
 
 .. important::
@@ -134,7 +134,7 @@ Hints for performance
 ---------------------
 
 RAM usage
-^^^^^^^^^
+~~~~~~~~~
 
 Building the documentation requires at least 8 GB of RAM to run without disk swapping,
 which slows it down.
@@ -154,11 +154,16 @@ If you have at least 16 GB of RAM, you can speed up compilation by running:
 
             make html SPHINXOPTS=-j2
 
+You can use ``-j auto`` to use all available CPU threads, but this can use a lot
+of RAM if you have a lot of CPU threads. For instance, on a system with 32 CPU
+threads, ``-j auto`` (which corresponds to ``-j 32`` here) can require 20+ GB of
+RAM for Sphinx alone.
+
 Specifying a list of files
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can specify a list of files to build, which can greatly speed up compilation:
 
 .. code:: sh
 
-    make FILELIST='classes/class_node.rst classes/class_resource.rst' html
+    make html FILELIST='classes/class_node.rst classes/class_resource.rst'

@@ -1,5 +1,3 @@
-:article_outdated: True
-
 .. _doc_logic_preferences:
 
 Logic preferences
@@ -21,8 +19,10 @@ corresponding values, and that code can be slow! For most cases, this code
 has no impact on your game's performance, but in heavy use cases such as
 procedural generation, it can bring your game to a crawl.
 
-For these reasons, it is always a best practice to set the initial values
-of a node before adding it to the scene tree.
+For these reasons, it is usually best practice to set the initial values
+of a node before adding it to the scene tree. There are some exceptions where
+values *can't* be set before being added to the scene tree, like setting global
+position.
 
 Loading vs. preloading
 ----------------------
@@ -35,7 +35,7 @@ resources while in the middle of performance-sensitive code.
 Its counterpart, the :ref:`load <class_@GDScript_method_load>` method, loads a
 resource only when it reaches the load statement. That is, it will load a
 resource in-place which can cause slowdowns when it occurs in the middle of
-sensitive processes. The ``load`` function is also an alias for
+sensitive processes. The ``load()`` function is also an alias for
 :ref:`ResourceLoader.load(path) <class_ResourceLoader_method_load>` which is
 accessible to *all* scripting languages.
 
@@ -72,7 +72,7 @@ either? Let's see an example:
     #
     # 4. It is when one instantiates this script on its own with .new() that
     #    one will load "office.tscn" rather than the exported value.
-    export(PackedScene) var a_building = preload("office.tscn")
+    @export var a_building : PackedScene = preload("office.tscn")
 
     # Uh oh! This results in an error!
     # One must assign constant values to constants. Because `load` performs a
@@ -98,9 +98,26 @@ either? Let's see an example:
         public override void _Ready()
         {
             // Can assign the value during initialization.
-            ABuilding = GD.Load<PackedScene>("res://office.tscn");
+            ABuilding = GD.Load<PackedScene>("res://Office.tscn");
         }
     }
+
+  .. code-tab:: cpp C++
+
+    using namespace godot;
+
+    class MyBuildings : public Node {
+        GDCLASS(MyBuildings, Node)
+
+    public:
+        const Ref<PackedScene> building = ResourceLoader::get_singleton()->load("res://building.tscn");
+        Ref<PackedScene> a_building;
+
+        virtual void _ready() override {
+            // Can assign the value during initialization.
+            a_building = ResourceLoader::get_singleton()->load("res://office.tscn");
+        }
+    };
 
 Preloading allows the script to handle all the loading the moment one loads the
 script. Preloading is useful, but there are also times when one doesn't wish
@@ -121,7 +138,7 @@ consider:
    in exceptional cases, one may wish not to do this:
 
    1. If the 'imported' class is liable to change, then it should be a property
-      instead, initialized either using an ``export`` or a ``load`` (and
+      instead, initialized either using an ``@export`` or a ``load()`` (and
       perhaps not even initialized until later).
 
    2. If the script requires a great many dependencies, and one does not wish

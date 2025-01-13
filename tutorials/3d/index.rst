@@ -1,3 +1,5 @@
+:allow_comments: False
+
 3D
 ==
 
@@ -9,6 +11,8 @@
    using_transforms
    procedural_geometry/index
    3d_text
+
+.. _doc_3d_rendering:
 
 Rendering
 ---------
@@ -22,6 +26,7 @@ Rendering
    lights_and_shadows
    using_decals
    physical_light_and_camera_units
+   particles/index
    high_dynamic_range
    global_illumination/index
    environment_and_post_processing
@@ -51,3 +56,4 @@ Tools
 
    csg_tools
    using_gridmaps
+   spring_arm
